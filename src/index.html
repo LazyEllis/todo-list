@@ -1,9 +1,32 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="h-100">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title></title>
+    <title>TaskBuddy</title>
   </head>
-  <body></body>
+  <body class="h-100">
+    <div class="container-fluid h-100 d-flex flex-column">
+      <div class="header">
+        <h1>TaskBuddy</h1>
+      </div>
+      <div class="dashboard row flex-grow-1">
+        <div class="sidebar">
+          <ul>
+            <li><button>My Day</button></li>
+            <li><button>Next 7 Days</button></li>
+            <li><button>All My Tasks</button></li>
+          </ul>
+          <h2>
+            Projects
+            <button class="add-project-btn">
+              <i class="bi bi-plus"></i>
+            </button>
+          </h2>
+          <ul class="project-list"></ul>
+        </div>
+        <div class="main-content col"></div>
+      </div>
+    </div>
+  </body>
 </html>
