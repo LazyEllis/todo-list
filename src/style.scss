@@ -4,3 +4,21 @@
 .sidebar {
   width: 280px;
 }
+
+.fs-7 {
+  font-size: 0.875rem;
+}
+
+.bg-grey {
+  background-color: #eeeeee;
+
+  &:hover {
+    background-color: #dddddd;
+  }
+}
+
+.horizontal-line:after {
+  content: " ";
+  display: block;
+  border-bottom: 2px solid #eeeeee;
+}
