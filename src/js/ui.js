@@ -175,90 +175,123 @@ const clearProjectDetails = () => {
   }
 };
 
+const createTaskListItem = (task) => {
+  const taskListItem = document.createElement("li");
+  taskListItem.classList.add("task-list-item", "col-12");
+  return taskListItem;
+};
+
+const createBtnGroup = () => {
+  const btnGroup = document.createElement("div");
+  btnGroup.classList.add("btn-group", "bg-grey", "w-100", "rounded-0");
+  return btnGroup;
+};
+
+const createTaskButton = (task) => {
+  const taskBtn = document.createElement("button");
+  taskBtn.classList.add(
+    "task-btn",
+    "btn",
+    "text-start",
+    "d-flex",
+    "border-0",
+    "rounded-0",
+    "border-start",
+    "border-5"
+  );
+
+  if (task.priority === "low") {
+    taskBtn.classList.add("border-primary");
+  } else if (task.priority === "medium") {
+    taskBtn.classList.add("border-warning");
+  } else if (task.priority === "high") {
+    taskBtn.classList.add("border-danger");
+  }
+
+  return taskBtn;
+};
+
+const createTaskCheckbox = () => {
+  const taskCheckboxContainer = document.createElement("div");
+  taskCheckboxContainer.classList.add("form-check");
+  const taskCheckbox = document.createElement("input");
+  taskCheckbox.classList.add("task-checkbox", "form-check-input");
+  taskCheckbox.setAttribute("type", "checkbox");
+  taskCheckboxContainer.appendChild(taskCheckbox);
+  return taskCheckboxContainer;
+};
+
+const createTaskDetails = (task) => {
+  const taskDetails = document.createElement("div");
+  taskDetails.classList.add("task-details");
+  const taskName = document.createElement("p");
+  taskName.classList.add("task-name", "mb-1");
+  taskName.textContent = task.name;
+  const taskDescription = document.createElement("p");
+  taskDescription.classList.add(
+    "task-description",
+    "text-muted",
+    "fw-lighter",
+    "fs-7",
+    "mb-1"
+  );
+  taskDescription.textContent = task.description;
+  const taskDueDate = document.createElement("p");
+  taskDueDate.classList.add(
+    "task-due-date",
+    "text-muted",
+    "fw-lighter",
+    "fs-7",
+    "mb-1"
+  );
+  taskDueDate.textContent = task.dueDate;
+  taskDetails.appendChild(taskName);
+  if (task.description !== "") {
+    taskDetails.appendChild(taskDescription);
+  }
+  if (task.dueDate !== "") {
+    taskDueDate.appendChild(taskDetails);
+  }
+
+  return taskDetails;
+};
+
+const createDropdownToggle = () => {
+  const dropdownToggle = document.createElement("button");
+  dropdownToggle.classList.add(
+    "btn",
+    "dropdown-toggle",
+    "dropdown-toggle-split",
+    "flex-grow-0"
+  );
+  dropdownToggle.setAttribute("data-bs-toggle", "dropdown");
+  const visuallyHidden = document.createElement("span");
+  visuallyHidden.classList.add("visually-hidden");
+  visuallyHidden.textContent = "Toggle Dropdown";
+  dropdownToggle.appendChild(visuallyHidden);
+  return dropdownToggle;
+};
+
 const renderTaskBtns = (project, tasks) => {
   tasks.forEach((task) => {
-    const taskListItem = document.createElement("li");
-    const btnGroup = document.createElement("div");
-    const taskBtn = document.createElement("button");
-    const taskCheckboxContainer = document.createElement("div");
-    const taskCheckbox = document.createElement("input");
-    const taskDetails = document.createElement("div");
-    const taskName = document.createElement("p");
-    const taskDescription = document.createElement("p");
-    const taskDueDate = document.createElement("p");
-    const dropdownToggle = document.createElement("button");
+    const taskListItem = createTaskListItem(task);
+    const btnGroup = createBtnGroup();
+    const taskBtn = createTaskButton(task);
+    const taskCheckboxContainer = createTaskCheckbox();
+    const taskDetails = createTaskDetails(task);
+    const dropdownToggle = createDropdownToggle();
     const dropdownMenu = renderDropdownMenu(
       dropdownItems,
       project.name,
       task.name
     );
-    const visuallyHidden = document.createElement("span");
     const horizontalLine = document.createElement("div");
-
-    visuallyHidden.classList.add("visually-hidden");
-    visuallyHidden.textContent = "Toggle Dropdown";
-
-    taskListItem.classList.add("task-list-item", "col-12");
-    taskBtn.classList.add(
-      "task-btn",
-      "btn",
-      "text-start",
-      "d-flex",
-      "border-0",
-      "rounded-0",
-      "border-start",
-      "border-5"
-    );
-    taskCheckbox.classList.add("task-checkbox", "form-check-input");
-    taskCheckbox.setAttribute("type", "checkbox");
-    taskName.classList.add("task-name", "mb-1");
-    taskDescription.classList.add(
-      "task-description",
-      "text-muted",
-      "fw-lighter",
-      "fs-7",
-      "mb-1"
-    );
-    taskDueDate.classList.add(
-      "task-due-date",
-      "text-muted",
-      "fw-lighter",
-      "fs-7",
-      "mb-1"
-    );
     horizontalLine.classList.add("horizontal-line");
 
-    if (task.priority === "low") {
-      taskBtn.classList.add("border-primary");
-    } else if (task.priority === "medium") {
-      taskBtn.classList.add("border-warning");
-    } else if (task.priority === "high") {
-      taskBtn.classList.add("border-danger");
-    }
-
-    taskCheckboxContainer.classList.add("form-check");
-    taskCheckboxContainer.appendChild(taskCheckbox);
-    taskDetails.classList.add("task-details");
-    taskDetails.append(taskName, taskDescription, taskDueDate);
     taskBtn.append(taskCheckboxContainer, taskDetails);
-    dropdownToggle.classList.add(
-      "btn",
-      "dropdown-toggle",
-      "dropdown-toggle-split",
-      "flex-grow-0"
-    );
-    dropdownToggle.setAttribute("data-bs-toggle", "dropdown");
-    dropdownToggle.appendChild(visuallyHidden);
-
-    btnGroup.classList.add("btn-group", "bg-grey", "w-100", "rounded-0");
     btnGroup.append(taskBtn, dropdownToggle, dropdownMenu);
-
     taskListItem.appendChild(btnGroup);
     projectTaskList.append(taskListItem, horizontalLine);
-
-    taskName.textContent = task.name;
-    taskDescription.textContent = task.description;
-    taskDueDate.textContent = task.dueDate;
   });
 };
 
@@ -300,12 +333,16 @@ export const renderNext7DaysProjectDetails = (projectArray) => {
   renderProjectHeader("Next 7 Days");
 
   const today = new Date();
+  today.setHours(0, 0, 0, 0);
   const next7Days = new Date(today);
-  next7Days.setDate(today.getDate() + 7);
-  const next7DaysISO = next7Days.toISOString().split("T")[0];
+  next7Days.setDate(next7Days.getDate() + 7);
+  next7Days.setHours(23, 59, 59, 999);
 
   projectArray.forEach((project) => {
-    const tasks = project.tasks.filter((task) => task.dueDate <= next7DaysISO);
+    const tasks = project.tasks.filter((task) => {
+      const taskDueDate = new Date(task.dueDate);
+      return taskDueDate >= today && taskDueDate <= next7Days;
+    });
     renderTaskBtns(project, tasks);
   });
 
