@@ -1,6 +1,6 @@
 const projects = [];
 
-const projectFactory = (name) => {
+export const projectFactory = (name) => {
   const tasks = [];
   return { name, tasks };
 };
@@ -8,7 +8,7 @@ const projectFactory = (name) => {
 export const getProjects = () => projects;
 
 export const findProject = (name) => {
-  return projects.find((project) => project.name === name);
+  return projects.find((project) => project.name === name.trim());
 };
 
 export const addProject = (name) => {
