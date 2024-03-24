@@ -12,6 +12,8 @@ import {
   renderProjectBtns,
   setDeleteProjectName,
   setEditProjectName,
+  toggleCollapseIcon,
+  renderAddTaskHoverEffect,
   renderProjectDetails,
   renderMyDayProjectDetails,
   renderNext7DaysProjectDetails,
@@ -22,7 +24,8 @@ import {
 } from "./ui";
 import { addTask, findTask, deleteTask, editTask } from "./task";
 
-const sidebar = document.querySelector(".sidebar");
+const sidebar = document.querySelector("#sidebar");
+const collapseBtn = document.querySelector(".collapse-btn");
 const addProjectForm = document.querySelector("#add-project-form");
 const projectNameInput = document.querySelector("#project-name");
 const addProjectBtn = document.querySelector(".add-project-btn");
@@ -30,7 +33,6 @@ const deleteProjectBtn = document.querySelector(".delete-project-btn");
 const editProjectForm = document.querySelector("#edit-project-form");
 const editProjectNameInput = document.querySelector("#edit-project-name");
 const editProjectBtn = document.querySelector(".edit-project-btn");
-const defaultProject = document.querySelector(".default-project");
 const projectTaskList = document.querySelector(".project-task-list");
 const addTaskForm = document.querySelector("#add-task-form");
 const taskNameInput = document.querySelector("#task-name");
@@ -100,20 +102,23 @@ const setEditTaskDetails = (button) => {
   editTaskBtn.setAttribute("data-project", projectName);
 };
 
+collapseBtn.addEventListener("click", toggleCollapseIcon);
+
 sidebar.addEventListener("click", (e) => {
   if (e.target.classList.contains("delete-project-option")) {
     setDeleteProjectName(e.target);
   } else if (e.target.classList.contains("edit-project-option")) {
     setEditProjectName(e.target);
   } else if (e.target.classList.contains("project-btn")) {
-    if (e.target.textContent === "All My Tasks") {
+    const projectName = e.target.getAttribute("data-project");
+
+    if (projectName === "All My Tasks") {
       renderAllProjectDetails(getProjects());
-    } else if (e.target.textContent.trim() === "My Day") {
+    } else if (projectName === "My Day") {
       renderMyDayProjectDetails(getProjects());
-    } else if (e.target.textContent === "Next 7 Days") {
+    } else if (projectName === "Next 7 Days") {
       renderNext7DaysProjectDetails(getProjects());
     } else {
-      const projectName = e.target.textContent;
       renderProjectDetails(findProject(projectName));
     }
   }
@@ -129,6 +134,18 @@ projectTaskList.addEventListener("click", (e) => {
   } else if (e.target.classList.contains("edit-task-option")) {
     renderProjectDropdown(getProjects(), editTaskProjectDropdown);
     setEditTaskDetails(e.target);
+  }
+});
+
+projectTaskList.addEventListener("mouseover", (e) => {
+  if (e.target.classList.contains("add-task-option")) {
+    renderAddTaskHoverEffect(e);
+  }
+});
+
+projectTaskList.addEventListener("mouseout", (e) => {
+  if (e.target.classList.contains("add-task-option")) {
+    renderAddTaskHoverEffect(e);
   }
 });
 
@@ -154,7 +171,7 @@ deleteProjectBtn.addEventListener("click", () => {
 
   const projectTitle = document.querySelector(".project-title");
   if (projectTitle.textContent === projectName) {
-    renderProjectDetails(defaultProject.textContent);
+    renderMyDayProjectDetails(getProjects());
   }
 });
 
@@ -233,3 +250,5 @@ editTaskForm.addEventListener("submit", (e) => {
   renderProjectDetails(findProject(projectName));
   editTaskForm.reset();
 });
+
+renderMyDayProjectDetails(getProjects());

@@ -1,43 +1,92 @@
 <!DOCTYPE html>
-<html lang="en" class="h-100">
+<html lang="en" data-bs-theme="dark">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>TaskBuddy</title>
   </head>
-  <body class="h-100">
-    <div class="container-fluid h-100 d-flex flex-column">
-      <div class="header">
-        <h1>TaskBuddy</h1>
-      </div>
-      <div class="dashboard row flex-grow-1">
-        <div class="sidebar">
-          <ul>
-            <li>
-              <button class="btn project-btn default-project">My Day</button>
-            </li>
-            <li>
-              <button class="btn project-btn">Next 7 Days</button>
-            </li>
-            <li>
-              <button class="btn project-btn">All My Tasks</button>
-            </li>
-          </ul>
-          <h2>
-            Projects
+  <body>
+    <div class="wrapper d-flex">
+      <div
+        class="offcanvas-md offcanvas-start p-3 vh-100 flex-shrink-0 sticky-md-top"
+        id="sidebar"
+      >
+        <div
+          class="header mb-3 ps-2 d-flex justify-content-between align-items-center"
+        >
+          <div class="mb-0 fw-semibold">TaskBuddy</div>
+          <button
+            class="btn btn-sm d-md-none"
+            data-bs-toggle="offcanvas"
+            data-bs-target="#sidebar"
+          >
+            <i class="bi bi-layout-sidebar h4"></i>
+          </button>
+        </div>
+        <ul class="base-project-list list-unstyled">
+          <li>
             <button
-              class="btn"
+              class="btn project-btn w-100 text-start"
+              data-project="My Day"
+            >
+              My Day
+            </button>
+          </li>
+          <li>
+            <button
+              class="btn project-btn w-100 text-start"
+              data-project="Next 7 Days"
+            >
+              Next 7 Days
+            </button>
+          </li>
+          <li>
+            <button
+              class="btn project-btn w-100 text-start"
+              data-project="All My Tasks"
+            >
+              All My Tasks
+            </button>
+          </li>
+        </ul>
+        <div
+          class="project-heading fs-6 ps-2 d-flex justify-content-between align-items-center"
+        >
+          Projects
+          <div class="btn-group">
+            <button
+              class="btn add-btn"
               data-bs-toggle="modal"
               data-bs-target="#add-project-modal"
             >
               <i class="bi bi-plus-lg"></i>
             </button>
-          </h2>
-          <ul class="project-list"></ul>
+            <button
+              class="btn collapse-btn"
+              data-bs-toggle="collapse"
+              data-bs-target="#project-list"
+              aria-expanded="true"
+              aria-controls="project-list"
+            >
+              <i class="bi bi-chevron-down"></i>
+            </button>
+          </div>
         </div>
-        <div class="main-content col">
+        <ul class="list-unstyled show" id="project-list"></ul>
+      </div>
+      <div class="main-content p-3 flex-fill">
+        <div class="header mb-4">
+          <button
+            class="btn btn-sm d-md-none"
+            data-bs-toggle="offcanvas"
+            data-bs-target="#sidebar"
+          >
+            <i class="bi bi-layout-sidebar h4"></i>
+          </button>
+        </div>
+        <div class="px-5">
           <div class="project-header"></div>
-          <ul class="project-task-list row gy-3"></ul>
+          <ul class="project-task-list list-unstyled"></ul>
         </div>
       </div>
     </div>
@@ -77,7 +126,7 @@
             </button>
             <button
               type="submit"
-              class="btn btn-primary add-project-btn"
+              class="btn btn-danger add-project-btn"
               form="add-project-form"
             >
               Add
@@ -113,7 +162,7 @@
             </button>
             <button
               type="button"
-              class="btn btn-primary delete-project-btn"
+              class="btn btn-danger delete-project-btn"
               data-bs-dismiss="modal"
             >
               Delete
@@ -158,7 +207,7 @@
             </button>
             <button
               type="submit"
-              class="btn btn-primary edit-project-btn"
+              class="btn btn-danger edit-project-btn"
               form="edit-project-form"
             >
               Save
@@ -215,9 +264,9 @@
                 <label for="task-priority" class="form-label">Priority</label>
                 <select id="task-priority" name="priority" class="form-select">
                   <option value="">Select Priority</option>
-                  <option value="low">Low</option>
-                  <option value="medium">Medium</option>
-                  <option value="high">High</option>
+                  <option value="Low">Low</option>
+                  <option value="Medium">Medium</option>
+                  <option value="High">High</option>
                 </select>
               </div>
               <div class="mb-3">
@@ -241,7 +290,7 @@
             </button>
             <button
               type="submit"
-              class="btn btn-primary add-task-btn"
+              class="btn btn-danger add-task-btn"
               form="add-task-form"
             >
               Add Task
@@ -277,7 +326,7 @@
             </button>
             <button
               type="button"
-              class="btn btn-primary delete-task-btn"
+              class="btn btn-danger delete-task-btn"
               data-bs-dismiss="modal"
             >
               Delete
@@ -344,9 +393,9 @@
                   class="form-select"
                 >
                   <option value="">Select Priority</option>
-                  <option value="low">Low</option>
-                  <option value="medium">Medium</option>
-                  <option value="high">High</option>
+                  <option value="Low">Low</option>
+                  <option value="Medium">Medium</option>
+                  <option value="High">High</option>
                 </select>
               </div>
               <div class="mb-3">
@@ -372,7 +421,7 @@
             </button>
             <button
               type="submit"
-              class="btn btn-primary edit-task-btn"
+              class="btn btn-danger edit-task-btn"
               form="edit-task-form"
             >
               Save

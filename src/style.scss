@@ -1,24 +1,136 @@
 @import "bootstrap/scss/bootstrap";
 @import "bootstrap-icons/font/bootstrap-icons.css";
 
-.sidebar {
-  width: 280px;
-}
+$content-color: #1e1e1e;
+$sidebar-color: #262626;
+$action-color: #de4c4a;
+$border-color: #3d3d3d;
 
-.fs-7 {
-  font-size: 0.875rem;
-}
-
-.bg-grey {
-  background-color: #eeeeee;
-
-  &:hover {
-    background-color: #dddddd;
+@mixin activate-hover($color) {
+  &:hover,
+  &:active {
+    background-color: $color;
   }
 }
 
-.horizontal-line:after {
-  content: " ";
-  display: block;
-  border-bottom: 2px solid #eeeeee;
+body {
+  background-color: $content-color;
+}
+
+.fs-7 {
+  font-size: 0.857rem !important;
+}
+
+.project-heading {
+  color: #b3b3b3;
+}
+
+.btn {
+  border: none;
+  color: inherit;
+}
+
+i {
+  pointer-events: none;
+}
+
+.dropdown-toggle::after {
+  display: none !important;
+}
+
+#sidebar {
+  width: 280px;
+  min-width: 280px;
+  background-color: $sidebar-color !important;
+}
+
+.main-content {
+  .project-title,
+  .btn,
+  .task-item {
+    max-width: 800px;
+  }
+}
+
+.base-project-list .project-btn,
+.add-btn,
+.collapse-btn,
+#project-list .btn-group {
+  @include activate-hover(#322f2a);
+
+  &.active {
+    background-color: #472525;
+    color: #f07f75;
+
+    .dropdown-toggle-split {
+      color: $action-color;
+    }
+  }
+}
+
+.add-btn,
+.collapse-btn,
+.dropdown-toggle-split,
+.dropdown-toggle {
+  color: #d1d1d1;
+  padding-left: 9px;
+  padding-right: 9px;
+
+  &:hover {
+    color: #fff;
+  }
+}
+
+.dropdown-toggle-split {
+  @include activate-hover(#363636);
+}
+
+.dropdown-toggle {
+  @include activate-hover(#343434);
+}
+
+.dropdown-item {
+  &:active {
+    background-color: #2b3035;
+  }
+
+  &.delete-project-option,
+  &.delete-task-option {
+    color: #e06155;
+  }
+}
+
+.add-task-option {
+  color: #808080;
+
+  i {
+    color: $action-color;
+  }
+
+  &:hover,
+  &:active {
+    color: $action-color !important;
+  }
+}
+
+.task-item {
+  border-bottom: 1px solid $border-color;
+  padding-top: 6px;
+  padding-bottom: 6px;
+}
+
+.task-description {
+  margin-bottom: 2px;
+}
+
+.text-low-priority {
+  color: #5297ff;
+}
+
+.text-medium-priority {
+  color: #ff9a13;
+}
+
+.text-high-priority {
+  color: #ff7066;
 }

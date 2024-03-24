@@ -1,4 +1,4 @@
-const projectList = document.querySelector(".project-list");
+const projectList = document.querySelector("#project-list");
 const deleteProjectName = document.querySelector(".delete-project-name");
 const editProjectNameInput = document.querySelector("#edit-project-name");
 const projectHeader = document.querySelector(".project-header");
@@ -19,6 +19,18 @@ const clearTaskBtns = () => {
   }
 };
 
+const replaceIcon = (icon, iconClass, newIconClass) => {
+  icon.classList.remove(iconClass);
+  icon.classList.add(newIconClass);
+};
+
+export const toggleCollapseIcon = (e) => {
+  const icon = e.target.firstElementChild;
+  icon.classList.contains("bi-chevron-down")
+    ? replaceIcon(icon, "bi-chevron-down", "bi-chevron-right")
+    : replaceIcon(icon, "bi-chevron-right", "bi-chevron-down");
+};
+
 const renderDropdownMenu = (dropdownItems, projectName, taskName = "") => {
   const dropdownMenu = document.createElement("ul");
   dropdownMenu.classList.add("dropdown-menu");
@@ -33,22 +45,21 @@ const renderDropdownMenu = (dropdownItems, projectName, taskName = "") => {
       dropdownMenu.appendChild(dropdownItem);
       dropdownButton.classList.add("dropdown-item");
       dropdownButton.setAttribute("data-project", projectName);
+      dropdownButton.textContent = item;
 
       if (item === "Edit") {
         dropdownButton.classList.add("edit-project-option");
-        dropdownButtonIcon.classList.add("bi", "bi-pencil");
+        dropdownButtonIcon.classList.add("bi", "bi-pencil", "me-2");
         dropdownButton.setAttribute("data-bs-toggle", "modal");
         dropdownButton.setAttribute("data-bs-target", "#edit-project-modal");
       } else if (item === "Delete") {
         dropdownButton.classList.add("delete-project-option");
-        dropdownButtonIcon.classList.add("bi", "bi-trash3");
+        dropdownButtonIcon.classList.add("bi", "bi-trash3", "me-2");
         dropdownButton.setAttribute("data-bs-toggle", "modal");
         dropdownButton.setAttribute("data-bs-target", "#delete-project-modal");
       }
 
-      dropdownButton.appendChild(dropdownButtonIcon);
-      dropdownButton.appendChild(document.createTextNode(" "));
-      dropdownButton.appendChild(document.createTextNode(item));
+      dropdownButton.prepend(dropdownButtonIcon);
     });
   } else {
     dropdownItems.forEach((item) => {
@@ -61,26 +72,25 @@ const renderDropdownMenu = (dropdownItems, projectName, taskName = "") => {
       dropdownButton.classList.add("dropdown-item");
       dropdownButton.setAttribute("data-project", projectName);
       dropdownButton.setAttribute("data-task", taskName);
+      dropdownButton.textContent = item;
 
       if (item === "Edit") {
         dropdownButton.classList.add("edit-task-option");
-        dropdownButtonIcon.classList.add("bi", "bi-pencil");
+        dropdownButtonIcon.classList.add("bi", "bi-pencil", "me-2");
         dropdownButton.setAttribute("data-bs-toggle", "modal");
         dropdownButton.setAttribute("data-bs-target", "#edit-task-modal");
         dropdownButton.setAttribute("data-task", taskName);
         dropdownButton.setAttribute("data-project", projectName);
       } else if (item === "Delete") {
         dropdownButton.classList.add("delete-task-option");
-        dropdownButtonIcon.classList.add("bi", "bi-trash3");
+        dropdownButtonIcon.classList.add("bi", "bi-trash3", "me-2");
         dropdownButton.setAttribute("data-bs-toggle", "modal");
         dropdownButton.setAttribute("data-bs-target", "#delete-task-modal");
         dropdownButton.setAttribute("data-task", taskName);
         dropdownButton.setAttribute("data-project", projectName);
       }
 
-      dropdownButton.appendChild(dropdownButtonIcon);
-      dropdownButton.appendChild(document.createTextNode(" "));
-      dropdownButton.appendChild(document.createTextNode(item));
+      dropdownButton.prepend(dropdownButtonIcon);
     });
   }
 
@@ -97,22 +107,33 @@ export const renderProjectBtns = (projectArray) => {
     const dropdownToggle = document.createElement("button");
     const dropdownMenu = renderDropdownMenu(dropdownItems, project.name);
     const visuallyHidden = document.createElement("span");
+    const ellipsisIcon = document.createElement("i");
 
     visuallyHidden.classList.add("visually-hidden");
     visuallyHidden.textContent = "Toggle Dropdown";
 
-    projectBtn.classList.add("project-btn", "btn");
+    ellipsisIcon.classList.add("bi", "bi-three-dots");
+
+    projectBtn.classList.add(
+      "project-btn",
+      "btn",
+      "text-start",
+      "overflow-hidden",
+      "text-truncate"
+    );
     projectBtn.textContent = project.name;
+    projectBtn.setAttribute("data-project", project.name);
 
     dropdownToggle.classList.add(
       "btn",
       "dropdown-toggle",
-      "dropdown-toggle-split"
+      "dropdown-toggle-split",
+      "flex-grow-0"
     );
     dropdownToggle.setAttribute("data-bs-toggle", "dropdown");
-    dropdownToggle.appendChild(visuallyHidden);
+    dropdownToggle.append(visuallyHidden, ellipsisIcon);
 
-    btnGroup.classList.add("btn-group");
+    btnGroup.classList.add("btn-group", "w-100", "d-flex");
     btnGroup.append(projectBtn, dropdownToggle, dropdownMenu);
 
     projectItem.append(btnGroup);
@@ -133,9 +154,33 @@ export const setEditProjectName = (button) => {
   editProjectNameInput.setAttribute("data-project", projectName);
 };
 
+const activateProjectBtn = (projectName) => {
+  const projectBtns = document.querySelectorAll(".project-btn");
+
+  projectBtns.forEach((btn) => {
+    const btnParent = btn.parentNode;
+
+    if (btn.classList.contains("active")) btn.classList.remove("active");
+    if (btnParent.classList.contains("active", "btn-group"))
+      btnParent.classList.remove("active");
+
+    if (btn.getAttribute("data-project") === projectName) {
+      btnParent.classList.contains("btn-group")
+        ? btnParent.classList.add("active")
+        : btn.classList.add("active");
+    }
+  });
+};
+
 const renderProjectHeader = (projectName) => {
-  const projectTitle = document.createElement("h2");
-  projectTitle.classList.add("project-title");
+  const projectTitle = document.createElement("h1");
+  projectTitle.classList.add(
+    "project-title",
+    "fs-3",
+    "fw-bold",
+    "mb-4",
+    "mx-auto"
+  );
   projectTitle.textContent = projectName;
   projectHeader.appendChild(projectTitle);
 };
@@ -146,24 +191,33 @@ const renderAddTaskOption = (projectName) => {
   const addTaskIcon = document.createElement("i");
 
   taskListItem.classList.add("task-list-item", "col-12");
-  addTaskIcon.classList.add("bi", "bi-plus");
+  addTaskIcon.classList.add("bi", "bi-plus-lg", "me-2");
   addTaskOption.classList.add(
     "add-task-option",
     "btn",
-    "bg-grey",
+    "d-block",
+    "px-0",
+    "mx-auto",
+    "border-0",
     "w-100",
-    "text-start",
-    "rounded-0"
+    "text-start"
   );
 
   addTaskOption.setAttribute("data-bs-toggle", "modal");
   addTaskOption.setAttribute("data-bs-target", "#add-task-modal");
   addTaskOption.setAttribute("data-project", projectName);
 
-  addTaskOption.appendChild(addTaskIcon);
-  addTaskOption.appendChild(document.createTextNode("  Add Task"));
+  addTaskOption.textContent = "Add Task";
+  addTaskOption.prepend(addTaskIcon);
   taskListItem.appendChild(addTaskOption);
   projectTaskList.appendChild(taskListItem);
+};
+
+export const renderAddTaskHoverEffect = (e) => {
+  const buttonIcon = e.target.firstChild;
+  buttonIcon.classList.contains("bi-plus-lg")
+    ? replaceIcon(buttonIcon, "bi-plus-lg", "bi-plus-circle-fill")
+    : replaceIcon(buttonIcon, "bi-plus-circle-fill", "bi-plus-lg");
 };
 
 const clearProjectDetails = () => {
@@ -175,140 +229,142 @@ const clearProjectDetails = () => {
   }
 };
 
-const createTaskListItem = (task) => {
+const renderTaskListItem = () => {
   const taskListItem = document.createElement("li");
   taskListItem.classList.add("task-list-item", "col-12");
   return taskListItem;
 };
 
-const createBtnGroup = () => {
-  const btnGroup = document.createElement("div");
-  btnGroup.classList.add("btn-group", "bg-grey", "w-100", "rounded-0");
-  return btnGroup;
+const renderTaskContainer = () => {
+  const taskContainer = document.createElement("div");
+  taskContainer.classList.add(
+    "task-item",
+    "w-100",
+    "mx-auto",
+    "text-start",
+    "d-flex"
+  );
+  return taskContainer;
 };
 
-const createTaskButton = (task) => {
-  const taskBtn = document.createElement("button");
-  taskBtn.classList.add(
-    "task-btn",
-    "btn",
-    "text-start",
-    "d-flex",
-    "border-0",
-    "rounded-0",
-    "border-start",
-    "border-5"
-  );
+const renderTaskCheckbox = (task) => {
+  const taskCheckboxContainer = document.createElement("div");
+  const taskCheckbox = document.createElement("i");
 
-  if (task.priority === "low") {
-    taskBtn.classList.add("border-primary");
-  } else if (task.priority === "medium") {
-    taskBtn.classList.add("border-warning");
-  } else if (task.priority === "high") {
-    taskBtn.classList.add("border-danger");
+  taskCheckboxContainer.classList.add("priority", "me-2");
+  taskCheckbox.classList.add("bi", "bi-circle");
+
+  if (task.priority === "High") {
+    taskCheckbox.classList.add("text-high-priority");
+  } else if (task.priority === "Medium") {
+    taskCheckbox.classList.add("text-medium-priority");
+  } else if (task.priority === "Low") {
+    taskCheckbox.classList.add("text-low-priority");
   }
 
-  return taskBtn;
-};
-
-const createTaskCheckbox = () => {
-  const taskCheckboxContainer = document.createElement("div");
-  taskCheckboxContainer.classList.add("form-check");
-  const taskCheckbox = document.createElement("input");
-  taskCheckbox.classList.add("task-checkbox", "form-check-input");
-  taskCheckbox.setAttribute("type", "checkbox");
   taskCheckboxContainer.appendChild(taskCheckbox);
   return taskCheckboxContainer;
 };
 
-const createTaskDetails = (task) => {
+const renderTaskDropdown = (project, task) => {
+  const dropdownContainer = document.createElement("div");
+  const dropdownToggle = document.createElement("button");
+  const dropdownMenu = renderDropdownMenu(
+    dropdownItems,
+    project.name,
+    task.name
+  );
+  const dropdownIcon = document.createElement("i");
+  const visuallyHidden = document.createElement("span");
+
+  dropdownContainer.classList.add("dropdown");
+  dropdownToggle.classList.add(
+    "btn",
+    "btn-sm",
+    "dropdown-toggle",
+    "flex-grow-0"
+  );
+  dropdownToggle.setAttribute("data-bs-toggle", "dropdown");
+
+  dropdownIcon.classList.add("bi", "bi-three-dots");
+  visuallyHidden.classList.add("visually-hidden");
+  visuallyHidden.textContent = "Toggle Dropdown";
+
+  dropdownToggle.append(dropdownIcon, visuallyHidden);
+  dropdownContainer.append(dropdownToggle, dropdownMenu);
+  return dropdownContainer;
+};
+
+const renderTaskDetails = (project, task) => {
   const taskDetails = document.createElement("div");
-  taskDetails.classList.add("task-details");
-  const taskName = document.createElement("p");
-  taskName.classList.add("task-name", "mb-1");
+  const taskHeader = document.createElement("div");
+  const taskName = document.createElement("div");
+  const taskDropdown = renderTaskDropdown(project, task);
+  const taskDescription = document.createElement("div");
+  const taskDueDate = document.createElement("div");
+
+  taskDetails.classList.add("flex-fill");
+  taskHeader.classList.add("d-flex", "justify-content-between");
+  taskName.classList.add("task-name");
   taskName.textContent = task.name;
-  const taskDescription = document.createElement("p");
+
   taskDescription.classList.add(
     "task-description",
     "text-muted",
     "fw-lighter",
-    "fs-7",
-    "mb-1"
+    "fs-7"
   );
   taskDescription.textContent = task.description;
-  const taskDueDate = document.createElement("p");
+
   taskDueDate.classList.add(
     "task-due-date",
     "text-muted",
     "fw-lighter",
-    "fs-7",
-    "mb-1"
+    "fs-7"
   );
   taskDueDate.textContent = task.dueDate;
-  taskDetails.appendChild(taskName);
+
+  taskHeader.append(taskName, taskDropdown);
+  taskDetails.appendChild(taskHeader);
   if (task.description !== "") {
     taskDetails.appendChild(taskDescription);
   }
   if (task.dueDate !== "") {
-    taskDueDate.appendChild(taskDetails);
+    taskDetails.appendChild(taskDueDate);
   }
 
   return taskDetails;
 };
 
-const createDropdownToggle = () => {
-  const dropdownToggle = document.createElement("button");
-  dropdownToggle.classList.add(
-    "btn",
-    "dropdown-toggle",
-    "dropdown-toggle-split",
-    "flex-grow-0"
-  );
-  dropdownToggle.setAttribute("data-bs-toggle", "dropdown");
-  const visuallyHidden = document.createElement("span");
-  visuallyHidden.classList.add("visually-hidden");
-  visuallyHidden.textContent = "Toggle Dropdown";
-  dropdownToggle.appendChild(visuallyHidden);
-  return dropdownToggle;
-};
-
-const renderTaskBtns = (project, tasks) => {
+const renderTaskItems = (project, tasks) => {
   tasks.forEach((task) => {
-    const taskListItem = createTaskListItem(task);
-    const btnGroup = createBtnGroup();
-    const taskBtn = createTaskButton(task);
-    const taskCheckboxContainer = createTaskCheckbox();
-    const taskDetails = createTaskDetails(task);
-    const dropdownToggle = createDropdownToggle();
-    const dropdownMenu = renderDropdownMenu(
-      dropdownItems,
-      project.name,
-      task.name
-    );
-    const horizontalLine = document.createElement("div");
-    horizontalLine.classList.add("horizontal-line");
+    const taskListItem = renderTaskListItem(task);
+    const taskContainer = renderTaskContainer(task);
+    const taskCheckbox = renderTaskCheckbox(task);
+    const taskDetails = renderTaskDetails(project, task);
 
-    taskBtn.append(taskCheckboxContainer, taskDetails);
-    btnGroup.append(taskBtn, dropdownToggle, dropdownMenu);
-    taskListItem.appendChild(btnGroup);
-    projectTaskList.append(taskListItem, horizontalLine);
+    taskContainer.append(taskCheckbox, taskDetails);
+    taskListItem.appendChild(taskContainer);
+    projectTaskList.appendChild(taskListItem);
   });
 };
 
 export const renderProjectDetails = (project) => {
   clearProjectDetails();
+  activateProjectBtn(project.name);
   renderProjectHeader(project.name);
   clearTaskBtns();
-  renderTaskBtns(project, project.tasks);
+  renderTaskItems(project, project.tasks);
   renderAddTaskOption(project.name);
 };
 
 export const renderAllProjectDetails = (projectArray) => {
   clearProjectDetails();
+  activateProjectBtn("All My Tasks");
   renderProjectHeader("All My Tasks");
 
   projectArray.forEach((project) => {
-    renderTaskBtns(project, project.tasks);
+    renderTaskItems(project, project.tasks);
   });
 
   renderAddTaskOption("All My Tasks");
@@ -316,13 +372,14 @@ export const renderAllProjectDetails = (projectArray) => {
 
 export const renderMyDayProjectDetails = (projectArray) => {
   clearProjectDetails();
+  activateProjectBtn("My Day");
   renderProjectHeader("My Day");
 
   const today = new Date().toISOString().split("T")[0];
 
   projectArray.forEach((project) => {
     const tasks = project.tasks.filter((task) => task.dueDate === today);
-    renderTaskBtns(project, tasks);
+    renderTaskItems(project, tasks);
   });
 
   renderAddTaskOption("My Day");
@@ -330,6 +387,7 @@ export const renderMyDayProjectDetails = (projectArray) => {
 
 export const renderNext7DaysProjectDetails = (projectArray) => {
   clearProjectDetails();
+  activateProjectBtn("Next 7 Days");
   renderProjectHeader("Next 7 Days");
 
   const today = new Date();
@@ -343,7 +401,7 @@ export const renderNext7DaysProjectDetails = (projectArray) => {
       const taskDueDate = new Date(task.dueDate);
       return taskDueDate >= today && taskDueDate <= next7Days;
     });
-    renderTaskBtns(project, tasks);
+    renderTaskItems(project, tasks);
   });
 
   renderAddTaskOption("Next 7 Days");
