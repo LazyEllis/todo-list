@@ -1,3 +1,15 @@
+import {
+  format,
+  addDays,
+  isBefore,
+  startOfDay,
+  endOfDay,
+  isToday,
+  isTomorrow,
+  isAfter,
+  endOfYear,
+} from "date-fns";
+
 const projectList = document.querySelector("#project-list");
 const deleteProjectName = document.querySelector(".delete-project-name");
 const editProjectNameInput = document.querySelector("#edit-project-name");
@@ -295,6 +307,54 @@ const renderTaskDropdown = (project, task) => {
   return dropdownContainer;
 };
 
+const renderTaskDateText = (task) => {
+  if (task.dueDate === "") return "";
+
+  // Get the current date
+  const currentDate = startOfDay(new Date());
+
+  // Get the start date of the next 7 days
+  const startOfWeek = new Date(currentDate);
+
+  // Get the end date of the next 7 days
+  const endOfWeek = endOfDay(addDays(startOfWeek, 6));
+
+  // Get the task date
+  const taskDate = startOfDay(new Date(task.dueDate));
+
+  // Get the end of the year
+  const endOfYearDate = endOfYear(currentDate);
+
+  let taskDateText = "";
+
+  // Check if the date is in the past
+  if (isBefore(taskDate, currentDate)) {
+    taskDateText = "Overdue";
+  }
+  // Check if the date is today
+  else if (isToday(taskDate)) {
+    taskDateText = "Today";
+  }
+  // Check if the date is tomorrow
+  else if (isTomorrow(taskDate)) {
+    taskDateText = "Tomorrow";
+  }
+  // Check if the date is after tomorrow but within the next 7 days
+  else if (isAfter(taskDate, startOfWeek) && isBefore(taskDate, endOfWeek)) {
+    taskDateText = format(taskDate, "EEEE"); // Format to display the day of the week
+  }
+  // Check if the date is beyond this week but within this year
+  else if (isAfter(taskDate, endOfWeek) && isBefore(taskDate, endOfYearDate)) {
+    taskDateText = format(taskDate, "MMM d");
+  }
+  // If the date is beyond this year
+  else {
+    taskDateText = format(taskDate, "MMM d yyyy");
+  }
+
+  return taskDateText;
+};
+
 const renderTaskDetails = (project, task) => {
   const taskDetails = document.createElement("div");
   const taskHeader = document.createElement("div");
@@ -322,7 +382,7 @@ const renderTaskDetails = (project, task) => {
     "fw-lighter",
     "fs-7"
   );
-  taskDueDate.textContent = task.dueDate;
+  taskDueDate.textContent = renderTaskDateText(task);
 
   taskHeader.append(taskName, taskDropdown);
   taskDetails.appendChild(taskHeader);
@@ -375,10 +435,12 @@ export const renderMyDayProjectDetails = (projectArray) => {
   activateProjectBtn("My Day");
   renderProjectHeader("My Day");
 
-  const today = new Date().toISOString().split("T")[0];
-
   projectArray.forEach((project) => {
-    const tasks = project.tasks.filter((task) => task.dueDate === today);
+    const tasks = project.tasks.filter((task) => {
+      const taskDate = startOfDay(new Date(task.dueDate));
+      return isToday(taskDate);
+    });
+
     renderTaskItems(project, tasks);
   });
 
@@ -390,17 +452,19 @@ export const renderNext7DaysProjectDetails = (projectArray) => {
   activateProjectBtn("Next 7 Days");
   renderProjectHeader("Next 7 Days");
 
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const next7Days = new Date(today);
-  next7Days.setDate(next7Days.getDate() + 7);
-  next7Days.setHours(23, 59, 59, 999);
+  const today = startOfDay(new Date());
+  const startOfWeek = new Date(today);
+  const endOfWeek = endOfDay(addDays(startOfWeek, 6));
 
   projectArray.forEach((project) => {
     const tasks = project.tasks.filter((task) => {
-      const taskDueDate = new Date(task.dueDate);
-      return taskDueDate >= today && taskDueDate <= next7Days;
+      const taskDate = startOfDay(new Date(task.dueDate));
+      return (
+        isToday(taskDate) ||
+        (isAfter(taskDate, today) && isBefore(taskDate, endOfWeek))
+      );
     });
+
     renderTaskItems(project, tasks);
   });
 
