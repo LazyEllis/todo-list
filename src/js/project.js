@@ -1,4 +1,4 @@
-const projects = [];
+const projects = JSON.parse(localStorage.getItem("projects")) || [];
 
 export const projectFactory = (name) => {
   const tasks = [];

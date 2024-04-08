@@ -1,6 +1,7 @@
 import "../style.scss";
 import "bootstrap";
 import getFormData from "./form";
+import saveProjects from "./local-storage";
 import {
   addProject,
   findProject,
@@ -168,6 +169,7 @@ projectTaskList.addEventListener("click", (e) => {
     const taskName = e.target.getAttribute("data-task");
 
     toggleTaskStatus(findProject(projectName), taskName);
+    saveProjects(getProjects());
     renderProjectDetails(findProject(projectName));
   }
 });
@@ -180,6 +182,7 @@ addProjectForm.addEventListener("submit", (e) => {
   e.preventDefault();
   const project = getFormData(addProjectForm);
   addProject(project.name.trim());
+  saveProjects(getProjects());
   renderProjectBtns(getProjects());
   addProjectForm.reset();
   renderProjectDetails(findProject(project.name));
@@ -190,6 +193,7 @@ deleteProjectBtn.addEventListener("click", () => {
     ".delete-project-name"
   ).textContent;
   deleteProject(projectName);
+  saveProjects(getProjects());
   renderProjectBtns(getProjects());
 
   const projectTitle = document.querySelector(".project-title");
@@ -207,6 +211,7 @@ editProjectForm.addEventListener("submit", (e) => {
   const projectName = editProjectNameInput.getAttribute("data-project");
   const newProject = getFormData(editProjectForm);
   editProject(projectName, newProject.name.trim());
+  saveProjects(getProjects());
   renderProjectBtns(getProjects());
   editProjectForm.reset();
 
@@ -234,6 +239,7 @@ addTaskForm.addEventListener("submit", (e) => {
     task.dueDate,
     task.priority
   );
+  saveProjects(getProjects());
   if (document.querySelector(".project-title").textContent === task.project) {
     renderProjectDetails(findProject(task.project));
   }
@@ -270,8 +276,10 @@ editTaskForm.addEventListener("submit", (e) => {
     newTask.dueDate,
     newTask.priority
   );
+  saveProjects(getProjects());
   renderProjectDetails(findProject(projectName));
   editTaskForm.reset();
 });
 
 renderMyDayProjectDetails(getProjects());
+renderProjectBtns(getProjects());
