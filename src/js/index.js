@@ -14,6 +14,7 @@ import {
   setEditProjectName,
   toggleCollapseIcon,
   renderAddTaskHoverEffect,
+  renderTaskPriorityHoverEffect,
   renderProjectDetails,
   renderMyDayProjectDetails,
   renderNext7DaysProjectDetails,
@@ -22,7 +23,13 @@ import {
   setDeleteTaskName,
   setDeleteTaskProject,
 } from "./ui";
-import { addTask, findTask, deleteTask, editTask } from "./task";
+import {
+  addTask,
+  findTask,
+  deleteTask,
+  toggleTaskStatus,
+  editTask,
+} from "./task";
 
 const sidebar = document.querySelector("#sidebar");
 const collapseBtn = document.querySelector(".collapse-btn");
@@ -62,7 +69,9 @@ const validateProjectName = (nameInput, submitBtn) => {
 const validateTaskName = (nameInput) => {
   const taskProject = document.querySelector("#task-project").value;
 
-  if (
+  if (findProject(taskProject) === undefined) {
+    nameInput.setCustomValidity("You must create a project first");
+  } else if (
     findTask(findProject(taskProject), nameInput.value.trim()) !== undefined
   ) {
     nameInput.setCustomValidity("Task already exists");
@@ -137,15 +146,29 @@ projectTaskList.addEventListener("click", (e) => {
   }
 });
 
-projectTaskList.addEventListener("mouseover", (e) => {
-  if (e.target.classList.contains("add-task-option")) {
-    renderAddTaskHoverEffect(e);
-  }
+["mouseout", "mouseover"].forEach((event) => {
+  projectTaskList.addEventListener(event, (e) => {
+    if (e.target.classList.contains("add-task-option")) {
+      renderAddTaskHoverEffect(e);
+    }
+  });
 });
 
-projectTaskList.addEventListener("mouseout", (e) => {
-  if (e.target.classList.contains("add-task-option")) {
-    renderAddTaskHoverEffect(e);
+["mouseout", "mouseover"].forEach((event) => {
+  projectTaskList.addEventListener(event, (e) => {
+    if (e.target.classList.contains("task-priority-icon")) {
+      renderTaskPriorityHoverEffect(e);
+    }
+  });
+});
+
+projectTaskList.addEventListener("click", (e) => {
+  if (e.target.classList.contains("task-priority-icon")) {
+    const projectName = e.target.getAttribute("data-project");
+    const taskName = e.target.getAttribute("data-task");
+
+    toggleTaskStatus(findProject(projectName), taskName);
+    renderProjectDetails(findProject(projectName));
   }
 });
 
@@ -194,7 +217,7 @@ editProjectForm.addEventListener("submit", (e) => {
 });
 
 taskNameInput.addEventListener("input", () => {
-  validateTaskName(taskNameInput, addTaskBtn);
+  validateTaskName(taskNameInput);
 });
 
 addTaskForm.addEventListener("input", () => {

@@ -1,5 +1,5 @@
 const taskFactory = (name, description, dueDate, priority) => {
-  return { name, description, dueDate, priority };
+  return { name, description, dueDate, priority, status: "Incomplete" };
 };
 
 export const addTask = (project, name, description, dueDate, priority) => {
@@ -14,6 +14,11 @@ export const findTask = (project, name) => {
 export const deleteTask = (project, name) => {
   const task = findTask(project, name);
   project.tasks.splice(project.tasks.indexOf(task), 1);
+};
+
+export const toggleTaskStatus = (project, name) => {
+  const task = findTask(project, name);
+  task.status = task.status === "Incomplete" ? "Complete" : "Incomplete";
 };
 
 export const editTask = (

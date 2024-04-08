@@ -118,19 +118,26 @@ i {
   padding-top: 6px;
   padding-bottom: 6px;
 }
+.task-priority-icon {
+  pointer-events: auto;
+
+  &:hover {
+    cursor: pointer;
+  }
+
+  &.text-low-priority {
+    color: #5297ff;
+  }
+
+  &.text-medium-priority {
+    color: #ff9a13;
+  }
+
+  &.text-high-priority {
+    color: #ff7066;
+  }
+}
 
 .task-description {
   margin-bottom: 2px;
-}
-
-.text-low-priority {
-  color: #5297ff;
-}
-
-.text-medium-priority {
-  color: #ff9a13;
-}
-
-.text-high-priority {
-  color: #ff7066;
 }

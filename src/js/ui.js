@@ -232,6 +232,13 @@ export const renderAddTaskHoverEffect = (e) => {
     : replaceIcon(buttonIcon, "bi-plus-circle-fill", "bi-plus-lg");
 };
 
+export const renderTaskPriorityHoverEffect = (e) => {
+  const taskCheckbox = e.target;
+  taskCheckbox.classList.contains("bi-circle")
+    ? replaceIcon(taskCheckbox, "bi-circle", "bi-check-circle")
+    : replaceIcon(taskCheckbox, "bi-check-circle", "bi-circle");
+};
+
 const clearProjectDetails = () => {
   while (projectHeader.firstChild) {
     projectHeader.removeChild(projectHeader.firstChild);
@@ -259,12 +266,17 @@ const renderTaskContainer = () => {
   return taskContainer;
 };
 
-const renderTaskCheckbox = (task) => {
+const renderTaskCheckbox = (project, task) => {
   const taskCheckboxContainer = document.createElement("div");
   const taskCheckbox = document.createElement("i");
 
-  taskCheckboxContainer.classList.add("priority", "me-2");
-  taskCheckbox.classList.add("bi", "bi-circle");
+  taskCheckboxContainer.classList.add("me-2");
+  task.status === "Incomplete"
+    ? taskCheckbox.classList.add("task-priority-icon", "bi", "bi-circle")
+    : taskCheckbox.classList.add("task-priority-icon", "bi", "bi-check-circle");
+
+  taskCheckbox.setAttribute("data-task", task.name);
+  taskCheckbox.setAttribute("data-project", project.name);
 
   if (task.priority === "High") {
     taskCheckbox.classList.add("text-high-priority");
@@ -302,6 +314,8 @@ const renderTaskDropdown = (project, task) => {
   visuallyHidden.classList.add("visually-hidden");
   visuallyHidden.textContent = "Toggle Dropdown";
 
+  task.status === "Complete" && dropdownToggle.setAttribute("disabled", true);
+
   dropdownToggle.append(dropdownIcon, visuallyHidden);
   dropdownContainer.append(dropdownToggle, dropdownMenu);
   return dropdownContainer;
@@ -327,8 +341,11 @@ const renderTaskDateText = (task) => {
 
   let taskDateText = "";
 
+  if (task.status === "Complete") {
+    taskDateText = "Completed";
+  }
   // Check if the date is in the past
-  if (isBefore(taskDate, currentDate)) {
+  else if (isBefore(taskDate, currentDate)) {
     taskDateText = "Overdue";
   }
   // Check if the date is today
@@ -400,7 +417,7 @@ const renderTaskItems = (project, tasks) => {
   tasks.forEach((task) => {
     const taskListItem = renderTaskListItem(task);
     const taskContainer = renderTaskContainer(task);
-    const taskCheckbox = renderTaskCheckbox(task);
+    const taskCheckbox = renderTaskCheckbox(project, task);
     const taskDetails = renderTaskDetails(project, task);
 
     taskContainer.append(taskCheckbox, taskDetails);
