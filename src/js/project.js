@@ -17,6 +17,10 @@ const projects = JSON.parse(localStorage.getItem("projects")) || [];
  */
 export const getProjects = () => projects;
 
+export const saveProjects = () => {
+  localStorage.setItem("projects", JSON.stringify(projects));
+};
+
 /**
  * Finds a project by its name.
  * @param {string} name - The name of the project to find.
@@ -33,6 +37,7 @@ export const findProject = (name) => {
 export const addProject = (name) => {
   const project = projectFactory(name);
   projects.push(project);
+  saveProjects();
 };
 
 /**
@@ -42,6 +47,7 @@ export const addProject = (name) => {
 export const deleteProject = (name) => {
   const project = findProject(name);
   projects.splice(projects.indexOf(project), 1);
+  saveProjects();
 };
 
 /**
@@ -54,4 +60,5 @@ export const editProject = (name, newName) => {
   if (project) {
     project.name = newName;
   }
+  saveProjects();
 };

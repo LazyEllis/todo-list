@@ -4,6 +4,7 @@ import {
   addProject,
   findProject,
   getProjects,
+  saveProjects,
   deleteProject,
   editProject,
 } from "./project";
@@ -30,7 +31,6 @@ import {
   setDeleteTaskProject,
 } from "./ui";
 import getFormData from "./form";
-import saveProjects from "./local-storage";
 
 const sidebar = document.querySelector("#sidebar");
 const collapseBtn = document.querySelector(".collapse-btn");
@@ -209,7 +209,7 @@ elements.projectTaskList.addEventListener("click", (e) => {
     const taskName = e.target.getAttribute("data-task");
 
     toggleTaskStatus(findProject(projectName), taskName);
-    saveProjects(getProjects());
+    saveProjects();
     renderCurrentProject();
   }
 });
@@ -222,7 +222,6 @@ elements.addProjectForm.addEventListener("submit", (e) => {
   e.preventDefault();
   const project = getFormData(elements.addProjectForm);
   addProject(project.name.trim());
-  saveProjects(getProjects());
   renderProjectBtns(getProjects());
   elements.addProjectForm.reset();
   renderProject(project.name);
@@ -231,7 +230,6 @@ elements.addProjectForm.addEventListener("submit", (e) => {
 elements.deleteProjectBtn.addEventListener("click", () => {
   const projectName = select(".delete-project-name").textContent;
   deleteProject(projectName);
-  saveProjects(getProjects());
   renderProjectBtns(getProjects());
 
   const projectTitle = select(".project-title");
@@ -252,7 +250,6 @@ elements.editProjectForm.addEventListener("submit", (e) => {
     elements.editProjectNameInput.getAttribute("data-project");
   const newProject = getFormData(elements.editProjectForm);
   editProject(projectName, newProject.name.trim());
-  saveProjects(getProjects());
   renderProjectBtns(getProjects());
   elements.editProjectForm.reset();
   renderCurrentProject();
@@ -276,7 +273,7 @@ elements.addTaskForm.addEventListener("submit", (e) => {
     task.dueDate,
     task.priority
   );
-  saveProjects(getProjects());
+  saveProjects();
   renderCurrentProject();
   elements.addTaskForm.reset();
 });
@@ -285,7 +282,7 @@ elements.deleteTaskBtn.addEventListener("click", (e) => {
   const projectName = e.target.getAttribute("data-project");
   const taskName = select(".delete-task-name").textContent;
   deleteTask(findProject(projectName), taskName);
-  saveProjects(getProjects());
+  saveProjects();
   renderCurrentProject();
 });
 
@@ -314,7 +311,7 @@ elements.editTaskForm.addEventListener("submit", (e) => {
     newTask.dueDate,
     newTask.priority
   );
-  saveProjects(getProjects());
+  saveProjects();
   renderCurrentProject();
   elements.editTaskForm.reset();
 });
