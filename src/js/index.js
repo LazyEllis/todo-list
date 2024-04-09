@@ -283,7 +283,7 @@ elements.deleteTaskBtn.addEventListener("click", (e) => {
   const projectName = e.target.getAttribute("data-project");
   const taskName = select(".delete-task-name").textContent;
   deleteTask(findProject(projectName), taskName);
-
+  saveProjects(getProjects());
   renderProjectDetails(findProject(projectName));
 });
 
