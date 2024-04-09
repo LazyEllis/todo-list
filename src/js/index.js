@@ -1,8 +1,3 @@
-/**
- * Module responsible for managing project tasks and UI interactions.
- * @module index
- */
-
 import "../scss/style.scss";
 import "./bootstrap";
 import {
