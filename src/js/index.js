@@ -58,7 +58,11 @@ const elements = {
   deleteTaskBtn: select(".delete-task-btn"),
   editTaskForm: select("#edit-task-form"),
   editTaskNameInput: select("#edit-task-name"),
+  editTaskDescription: select("#edit-task-description"),
+  editTaskDate: select("#edit-task-date"),
+  editTaskPriority: select("#edit-task-priority"),
   editTaskProjectDropdown: select("#edit-task-project"),
+  editTaskBtn: select(".edit-task-btn"),
 };
 
 /**
@@ -79,12 +83,12 @@ const validateProjectName = (nameInput, submitBtn) => {
 /**
  * Validates the task name input field.
  * @param {HTMLInputElement} nameInput - The input field for task name.
- * @param {HTMLSelectElement} projectInput - The select field for project name.
+ * @param {HTMLSelectElement} projectDropdown - The select field for project name.
  */
-const validateTaskName = (nameInput, projectInput) => {
-  const projectNotFound = findProject(projectInput.value) === undefined;
+const validateTaskName = (nameInput, projectDropdown) => {
+  const projectNotFound = findProject(projectDropdown.value) === undefined;
   const taskExists =
-    findTask(findProject(projectInput.value), nameInput.value.trim()) !==
+    findTask(findProject(projectDropdown.value), nameInput.value.trim()) !==
     undefined;
 
   if (projectNotFound) {
@@ -107,6 +111,7 @@ const collapseForm = (form, submitBtn) => {
     form.checkValidity() ? "modal" : null
   );
 };
+
 /**
  * Sets the details for adding a new task based on the selected project.
  * @param {HTMLElement} button - The button triggering the action.
@@ -137,6 +142,7 @@ const setEditTaskDetails = (button) => {
   elements.editTaskNameInput.setAttribute("data-task", taskName);
   elements.editTaskBtn.setAttribute("data-project", projectName);
 };
+
 /**
  * Renders the appropriate project details based on the selected project name.
  * @param {string} projectName - The name of the project.
@@ -155,6 +161,11 @@ const renderProject = (projectName) => {
     default:
       renderProjectDetails(findProject(projectName));
   }
+};
+
+const renderCurrentProject = () => {
+  const projectTitle = select(".project-title");
+  renderProject(projectTitle.textContent);
 };
 
 collapseBtn.addEventListener("click", toggleCollapseIcon);
@@ -199,7 +210,7 @@ elements.projectTaskList.addEventListener("click", (e) => {
 
     toggleTaskStatus(findProject(projectName), taskName);
     saveProjects(getProjects());
-    renderProjectDetails(findProject(projectName));
+    renderCurrentProject();
   }
 });
 
@@ -214,7 +225,7 @@ elements.addProjectForm.addEventListener("submit", (e) => {
   saveProjects(getProjects());
   renderProjectBtns(getProjects());
   elements.addProjectForm.reset();
-  renderProjectDetails(findProject(project.name));
+  renderProject(project.name);
 });
 
 elements.deleteProjectBtn.addEventListener("click", () => {
@@ -225,7 +236,9 @@ elements.deleteProjectBtn.addEventListener("click", () => {
 
   const projectTitle = select(".project-title");
   if (projectTitle.textContent === projectName) {
-    renderMyDayProjectDetails(getProjects());
+    renderProject("My Day");
+  } else {
+    renderCurrentProject();
   }
 });
 
@@ -242,15 +255,11 @@ elements.editProjectForm.addEventListener("submit", (e) => {
   saveProjects(getProjects());
   renderProjectBtns(getProjects());
   elements.editProjectForm.reset();
-
-  const projectTitle = select(".project-title");
-  if (projectTitle.textContent === projectName) {
-    renderProjectDetails(findProject(newProject.name));
-  }
+  renderCurrentProject();
 });
 
 elements.taskNameInput.addEventListener("input", () => {
-  validateTaskName(elements.taskNameInput, elements.taskProjectInput);
+  validateTaskName(elements.taskNameInput, elements.taskProjectDropdown);
 });
 
 elements.addTaskForm.addEventListener("input", () => {
@@ -268,9 +277,7 @@ elements.addTaskForm.addEventListener("submit", (e) => {
     task.priority
   );
   saveProjects(getProjects());
-  if (select(".project-title").textContent === task.project) {
-    renderProjectDetails(findProject(task.project));
-  }
+  renderCurrentProject();
   elements.addTaskForm.reset();
 });
 
@@ -279,11 +286,14 @@ elements.deleteTaskBtn.addEventListener("click", (e) => {
   const taskName = select(".delete-task-name").textContent;
   deleteTask(findProject(projectName), taskName);
   saveProjects(getProjects());
-  renderProjectDetails(findProject(projectName));
+  renderCurrentProject();
 });
 
 elements.editTaskNameInput.addEventListener("input", () => {
-  validateTaskName(elements.editTaskNameInput, elements.editTaskProjectInput);
+  validateTaskName(
+    elements.editTaskNameInput,
+    elements.editTaskProjectDropdown
+  );
 });
 
 elements.editTaskForm.addEventListener("input", () => {
@@ -305,9 +315,9 @@ elements.editTaskForm.addEventListener("submit", (e) => {
     newTask.priority
   );
   saveProjects(getProjects());
-  renderProjectDetails(findProject(projectName));
+  renderCurrentProject();
   elements.editTaskForm.reset();
 });
 
-renderMyDayProjectDetails(getProjects());
+renderProject("My Day");
 renderProjectBtns(getProjects());
