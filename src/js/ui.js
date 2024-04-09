@@ -19,153 +19,194 @@ const deleteTaskName = document.querySelector(".delete-task-name");
 const deleteTaskBtn = document.querySelector(".delete-task-btn");
 const dropdownItems = ["Edit", "Delete"];
 
-const clearProjectBtns = () => {
-  while (projectList.firstChild) {
-    projectList.removeChild(projectList.firstChild);
+/**
+ * Clears all child elements from a given DOM element.
+ * @param {HTMLElement} element - The parent element to clear.
+ */
+const clearElement = (element) => {
+  while (element.firstChild) {
+    element.removeChild(element.firstChild);
   }
 };
 
-const clearTaskBtns = () => {
-  while (projectTaskList.firstChild) {
-    projectTaskList.removeChild(projectTaskList.firstChild);
+/**
+ * Replaces the CSS classes of an icon element.
+ * @param {HTMLElement} icon - The icon element to modify.
+ * @param {string} oldClass - The class to remove.
+ * @param {string} newClass - The class to add.
+ */
+const replaceIcon = (icon, oldClass, newClass) => {
+  icon.classList.remove(oldClass);
+  icon.classList.add(newClass);
+};
+
+const clearProjectDetails = () => {
+  clearElement(projectHeader);
+  clearElement(projectTaskList);
+};
+
+/**
+ * Renders the dropdown buttons for a project or task.
+ * @param {string} item - The dropdown item text.
+ * @param {string} projectName - The name of the project.
+ * @param {string} [taskName=""] - The name of the task (optional).
+ * @returns {HTMLButtonElement} - The rendered dropdown button element.
+ */
+const renderDropdownButtons = (item, projectName, taskName = "") => {
+  const dropdownButton = document.createElement("button");
+  const icon = document.createElement("i");
+  const dropdownButtonClasses = ["dropdown-item"];
+
+  dropdownButton.classList.add(...dropdownButtonClasses);
+  dropdownButton.setAttribute("data-project", projectName);
+  dropdownButton.textContent = item;
+
+  if (taskName !== "") {
+    dropdownButton.setAttribute("data-task", taskName);
   }
+
+  if (item === "Edit") {
+    dropdownButton.classList.add(
+      "edit-" + (taskName ? "task" : "project") + "-option"
+    );
+    icon.classList.add("bi", "bi-pencil", "me-2");
+    dropdownButton.setAttribute("data-bs-toggle", "modal");
+    dropdownButton.setAttribute(
+      "data-bs-target",
+      "#edit-" + (taskName ? "task" : "project") + "-modal"
+    );
+  } else if (item === "Delete") {
+    dropdownButton.classList.add(
+      "delete-" + (taskName ? "task" : "project") + "-option"
+    );
+    icon.classList.add("bi", "bi-trash3", "me-2");
+    dropdownButton.setAttribute("data-bs-toggle", "modal");
+    dropdownButton.setAttribute(
+      "data-bs-target",
+      "#delete-" + (taskName ? "task" : "project") + "-modal"
+    );
+  }
+
+  dropdownButton.prepend(icon);
+
+  return dropdownButton;
 };
 
-const replaceIcon = (icon, iconClass, newIconClass) => {
-  icon.classList.remove(iconClass);
-  icon.classList.add(newIconClass);
-};
-
-export const toggleCollapseIcon = (e) => {
-  const icon = e.target.firstElementChild;
-  icon.classList.contains("bi-chevron-down")
-    ? replaceIcon(icon, "bi-chevron-down", "bi-chevron-right")
-    : replaceIcon(icon, "bi-chevron-right", "bi-chevron-down");
-};
-
+/**
+ * Renders the dropdown menu for a project or task.
+ * @param {string[]} dropdownItems - Array of dropdown items.
+ * @param {string} projectName - The name of the project.
+ * @param {string} [taskName=""] - The name of the task (optional).
+ * @returns {HTMLUListElement} - The rendered dropdown menu element.
+ */
 const renderDropdownMenu = (dropdownItems, projectName, taskName = "") => {
   const dropdownMenu = document.createElement("ul");
   dropdownMenu.classList.add("dropdown-menu");
 
-  if (taskName === "") {
-    dropdownItems.forEach((item) => {
-      const dropdownItem = document.createElement("li");
-      const dropdownButton = document.createElement("button");
-      const dropdownButtonIcon = document.createElement("i");
+  dropdownItems.forEach((item) => {
+    const dropdownItem = document.createElement("li");
+    const dropdownButton = renderDropdownButtons(item, projectName, taskName);
 
-      dropdownItem.appendChild(dropdownButton);
-      dropdownMenu.appendChild(dropdownItem);
-      dropdownButton.classList.add("dropdown-item");
-      dropdownButton.setAttribute("data-project", projectName);
-      dropdownButton.textContent = item;
-
-      if (item === "Edit") {
-        dropdownButton.classList.add("edit-project-option");
-        dropdownButtonIcon.classList.add("bi", "bi-pencil", "me-2");
-        dropdownButton.setAttribute("data-bs-toggle", "modal");
-        dropdownButton.setAttribute("data-bs-target", "#edit-project-modal");
-      } else if (item === "Delete") {
-        dropdownButton.classList.add("delete-project-option");
-        dropdownButtonIcon.classList.add("bi", "bi-trash3", "me-2");
-        dropdownButton.setAttribute("data-bs-toggle", "modal");
-        dropdownButton.setAttribute("data-bs-target", "#delete-project-modal");
-      }
-
-      dropdownButton.prepend(dropdownButtonIcon);
-    });
-  } else {
-    dropdownItems.forEach((item) => {
-      const dropdownItem = document.createElement("li");
-      const dropdownButton = document.createElement("button");
-      const dropdownButtonIcon = document.createElement("i");
-
-      dropdownItem.appendChild(dropdownButton);
-      dropdownMenu.appendChild(dropdownItem);
-      dropdownButton.classList.add("dropdown-item");
-      dropdownButton.setAttribute("data-project", projectName);
-      dropdownButton.setAttribute("data-task", taskName);
-      dropdownButton.textContent = item;
-
-      if (item === "Edit") {
-        dropdownButton.classList.add("edit-task-option");
-        dropdownButtonIcon.classList.add("bi", "bi-pencil", "me-2");
-        dropdownButton.setAttribute("data-bs-toggle", "modal");
-        dropdownButton.setAttribute("data-bs-target", "#edit-task-modal");
-        dropdownButton.setAttribute("data-task", taskName);
-        dropdownButton.setAttribute("data-project", projectName);
-      } else if (item === "Delete") {
-        dropdownButton.classList.add("delete-task-option");
-        dropdownButtonIcon.classList.add("bi", "bi-trash3", "me-2");
-        dropdownButton.setAttribute("data-bs-toggle", "modal");
-        dropdownButton.setAttribute("data-bs-target", "#delete-task-modal");
-        dropdownButton.setAttribute("data-task", taskName);
-        dropdownButton.setAttribute("data-project", projectName);
-      }
-
-      dropdownButton.prepend(dropdownButtonIcon);
-    });
-  }
+    dropdownItem.appendChild(dropdownButton);
+    dropdownMenu.appendChild(dropdownItem);
+  });
 
   return dropdownMenu;
 };
 
-export const renderProjectBtns = (projectArray) => {
-  clearProjectBtns();
+/**
+ * Renders the dropdown toggle for a project or task.
+ * @param {Object} project - The project object.
+ * @param {Object} [task=""] - The task object (optional).
+ * @returns {HTMLElement} - The rendered dropdown toggle element.
+ */
+const renderDropdownToggle = (project, task = "") => {
+  const dropdownContainer = document.createElement("div");
+  const dropdownToggle = document.createElement("button");
+  const dropdownMenu =
+    task !== ""
+      ? renderDropdownMenu(dropdownItems, project.name, task.name)
+      : renderDropdownMenu(dropdownItems, project.name);
+  const dropdownIcon = document.createElement("i");
+  const visuallyHidden = document.createElement("span");
 
-  projectArray.forEach((project) => {
-    const projectItem = document.createElement("li");
-    const btnGroup = document.createElement("div");
-    const projectBtn = document.createElement("button");
-    const dropdownToggle = document.createElement("button");
-    const dropdownMenu = renderDropdownMenu(dropdownItems, project.name);
-    const visuallyHidden = document.createElement("span");
-    const ellipsisIcon = document.createElement("i");
+  dropdownContainer.classList.add("dropdown");
+  dropdownToggle.classList.add("btn", "flex-grow-0", "dropdown-toggle");
 
-    visuallyHidden.classList.add("visually-hidden");
-    visuallyHidden.textContent = "Toggle Dropdown";
+  task !== ""
+    ? dropdownToggle.classList.add("btn-sm")
+    : dropdownToggle.classList.add("dropdown-toggle-split");
+  dropdownToggle.setAttribute("data-bs-toggle", "dropdown");
 
-    ellipsisIcon.classList.add("bi", "bi-three-dots");
+  dropdownIcon.classList.add("bi", "bi-three-dots");
+  visuallyHidden.classList.add("visually-hidden");
+  visuallyHidden.textContent = "Toggle Dropdown";
 
-    projectBtn.classList.add(
-      "project-btn",
-      "btn",
-      "text-start",
-      "overflow-hidden",
-      "text-truncate"
-    );
-    projectBtn.textContent = project.name;
-    projectBtn.setAttribute("data-project", project.name);
+  task !== "" &&
+    task.status === "Complete" &&
+    dropdownToggle.setAttribute("disabled", true);
 
-    dropdownToggle.classList.add(
-      "btn",
-      "dropdown-toggle",
-      "dropdown-toggle-split",
-      "flex-grow-0"
-    );
-    dropdownToggle.setAttribute("data-bs-toggle", "dropdown");
-    dropdownToggle.append(visuallyHidden, ellipsisIcon);
-
-    btnGroup.classList.add("btn-group", "w-100", "d-flex");
-    btnGroup.append(projectBtn, dropdownToggle, dropdownMenu);
-
-    projectItem.append(btnGroup);
-    projectItem.classList.add("project-item");
-
-    projectList.appendChild(projectItem);
-  });
+  dropdownToggle.append(dropdownIcon, visuallyHidden);
+  dropdownContainer.append(dropdownToggle, dropdownMenu);
+  return task !== "" ? dropdownContainer : dropdownToggle;
 };
 
-export const setDeleteProjectName = (button) => {
-  const projectName = button.getAttribute("data-project");
-  deleteProjectName.textContent = projectName;
+/**
+ * Renders the button group for a project.
+ * @param {Object} project - The project object.
+ * @returns {HTMLDivElement} - The rendered button group element.
+ */
+const renderButtonGroup = (project) => {
+  const btnGroup = document.createElement("div");
+  btnGroup.classList.add("btn-group", "w-100", "d-flex");
+
+  const projectBtn = renderProjectButton(project);
+  const dropdownToggle = renderDropdownToggle(project);
+  const dropdownMenu = renderDropdownMenu(dropdownItems, project.name);
+
+  btnGroup.append(projectBtn, dropdownToggle, dropdownMenu);
+
+  return btnGroup;
 };
 
-export const setEditProjectName = (button) => {
-  const projectName = button.getAttribute("data-project");
-  editProjectNameInput.value = projectName;
-  editProjectNameInput.setAttribute("data-project", projectName);
+/**
+ * Renders the project button.
+ * @param {Object} project - The project object.
+ * @returns {HTMLButtonElement} - The rendered project button element.
+ */
+const renderProjectButton = (project) => {
+  const projectBtn = document.createElement("button");
+  projectBtn.classList.add(
+    "project-btn",
+    "btn",
+    "text-start",
+    "overflow-hidden",
+    "text-truncate"
+  );
+  projectBtn.textContent = project.name;
+  projectBtn.setAttribute("data-project", project.name);
+  return projectBtn;
 };
 
+/**
+ * Renders a project list item.
+ * @param {Object} project - The project object.
+ * @returns {HTMLLIElement} - The rendered project list item element.
+ */
+const renderProjectListItem = (project) => {
+  const projectItem = document.createElement("li");
+  projectItem.classList.add("project-item");
+
+  const btnGroup = renderButtonGroup(project);
+  projectItem.appendChild(btnGroup);
+
+  return projectItem;
+};
+
+/**
+ * Activates a project button.
+ * @param {string} projectName - The name of the project to activate.
+ */
 const activateProjectBtn = (projectName) => {
   const projectBtns = document.querySelectorAll(".project-btn");
 
@@ -184,6 +225,10 @@ const activateProjectBtn = (projectName) => {
   });
 };
 
+/**
+ * Renders the header for a project.
+ * @param {string} projectName - The name of the project.
+ */
 const renderProjectHeader = (projectName) => {
   const projectTitle = document.createElement("h1");
   projectTitle.classList.add(
@@ -197,6 +242,10 @@ const renderProjectHeader = (projectName) => {
   projectHeader.appendChild(projectTitle);
 };
 
+/**
+ * Renders the "Add Task" option for a project.
+ * @param {string} projectName - The name of the project.
+ */
 const renderAddTaskOption = (projectName) => {
   const addTaskOption = document.createElement("button");
   const taskListItem = document.createElement("li");
@@ -225,35 +274,20 @@ const renderAddTaskOption = (projectName) => {
   projectTaskList.appendChild(taskListItem);
 };
 
-export const renderAddTaskHoverEffect = (e) => {
-  const buttonIcon = e.target.firstChild;
-  buttonIcon.classList.contains("bi-plus-lg")
-    ? replaceIcon(buttonIcon, "bi-plus-lg", "bi-plus-circle-fill")
-    : replaceIcon(buttonIcon, "bi-plus-circle-fill", "bi-plus-lg");
-};
-
-export const renderTaskPriorityHoverEffect = (e) => {
-  const taskCheckbox = e.target;
-  taskCheckbox.classList.contains("bi-circle")
-    ? replaceIcon(taskCheckbox, "bi-circle", "bi-check-circle")
-    : replaceIcon(taskCheckbox, "bi-check-circle", "bi-circle");
-};
-
-const clearProjectDetails = () => {
-  while (projectHeader.firstChild) {
-    projectHeader.removeChild(projectHeader.firstChild);
-  }
-  while (projectTaskList.firstChild) {
-    projectTaskList.removeChild(projectTaskList.firstChild);
-  }
-};
-
+/**
+ * Renders a task list item.
+ * @returns {HTMLLIElement} - The rendered task list item element.
+ */
 const renderTaskListItem = () => {
   const taskListItem = document.createElement("li");
   taskListItem.classList.add("task-list-item", "col-12");
   return taskListItem;
 };
 
+/**
+ * Renders a task container.
+ * @returns {HTMLDivElement} - The rendered task container element.
+ */
 const renderTaskContainer = () => {
   const taskContainer = document.createElement("div");
   taskContainer.classList.add(
@@ -266,6 +300,12 @@ const renderTaskContainer = () => {
   return taskContainer;
 };
 
+/**
+ * Renders the checkbox for a task.
+ * @param {Object} project - The project object.
+ * @param {Object} task - The task object.
+ * @returns {HTMLDivElement} - The rendered task checkbox element.
+ */
 const renderTaskCheckbox = (project, task) => {
   const taskCheckboxContainer = document.createElement("div");
   const taskCheckbox = document.createElement("i");
@@ -278,105 +318,73 @@ const renderTaskCheckbox = (project, task) => {
   taskCheckbox.setAttribute("data-task", task.name);
   taskCheckbox.setAttribute("data-project", project.name);
 
-  if (task.priority === "High") {
-    taskCheckbox.classList.add("text-high-priority");
-  } else if (task.priority === "Medium") {
-    taskCheckbox.classList.add("text-medium-priority");
-  } else if (task.priority === "Low") {
-    taskCheckbox.classList.add("text-low-priority");
+  switch (task.priority) {
+    case "High":
+      taskCheckbox.classList.add("text-high-priority");
+      break;
+    case "Medium":
+      taskCheckbox.classList.add("text-medium-priority");
+      break;
+    case "Low":
+      taskCheckbox.classList.add("text-low-priority");
+      break;
+    default:
+      break;
   }
 
   taskCheckboxContainer.appendChild(taskCheckbox);
   return taskCheckboxContainer;
 };
 
-const renderTaskDropdown = (project, task) => {
-  const dropdownContainer = document.createElement("div");
-  const dropdownToggle = document.createElement("button");
-  const dropdownMenu = renderDropdownMenu(
-    dropdownItems,
-    project.name,
-    task.name
-  );
-  const dropdownIcon = document.createElement("i");
-  const visuallyHidden = document.createElement("span");
-
-  dropdownContainer.classList.add("dropdown");
-  dropdownToggle.classList.add(
-    "btn",
-    "btn-sm",
-    "dropdown-toggle",
-    "flex-grow-0"
-  );
-  dropdownToggle.setAttribute("data-bs-toggle", "dropdown");
-
-  dropdownIcon.classList.add("bi", "bi-three-dots");
-  visuallyHidden.classList.add("visually-hidden");
-  visuallyHidden.textContent = "Toggle Dropdown";
-
-  task.status === "Complete" && dropdownToggle.setAttribute("disabled", true);
-
-  dropdownToggle.append(dropdownIcon, visuallyHidden);
-  dropdownContainer.append(dropdownToggle, dropdownMenu);
-  return dropdownContainer;
-};
-
+/**
+ * Renders the date text for a task.
+ * @param {Object} task - The task object.
+ * @returns {string} - The rendered task date text.
+ */
 const renderTaskDateText = (task) => {
   if (task.dueDate === "") return "";
 
-  // Get the current date
   const currentDate = startOfDay(new Date());
-
-  // Get the start date of the next 7 days
   const startOfWeek = new Date(currentDate);
-
-  // Get the end date of the next 7 days
   const endOfWeek = endOfDay(addDays(startOfWeek, 6));
-
-  // Get the task date
   const taskDate = startOfDay(new Date(task.dueDate));
-
-  // Get the end of the year
   const endOfYearDate = endOfYear(currentDate);
 
   let taskDateText = "";
 
   if (task.status === "Complete") {
     taskDateText = "Completed";
-  }
-  // Check if the date is in the past
-  else if (isBefore(taskDate, currentDate)) {
+  } else if (isBefore(taskDate, currentDate)) {
     taskDateText = "Overdue";
-  }
-  // Check if the date is today
-  else if (isToday(taskDate)) {
+  } else if (isToday(taskDate)) {
     taskDateText = "Today";
-  }
-  // Check if the date is tomorrow
-  else if (isTomorrow(taskDate)) {
+  } else if (isTomorrow(taskDate)) {
     taskDateText = "Tomorrow";
-  }
-  // Check if the date is after tomorrow but within the next 7 days
-  else if (isAfter(taskDate, startOfWeek) && isBefore(taskDate, endOfWeek)) {
-    taskDateText = format(taskDate, "EEEE"); // Format to display the day of the week
-  }
-  // Check if the date is beyond this week but within this year
-  else if (isAfter(taskDate, endOfWeek) && isBefore(taskDate, endOfYearDate)) {
+  } else if (isAfter(taskDate, startOfWeek) && isBefore(taskDate, endOfWeek)) {
+    taskDateText = format(taskDate, "EEEE");
+  } else if (
+    isAfter(taskDate, endOfWeek) &&
+    isBefore(taskDate, endOfYearDate)
+  ) {
     taskDateText = format(taskDate, "MMM d");
-  }
-  // If the date is beyond this year
-  else {
+  } else {
     taskDateText = format(taskDate, "MMM d yyyy");
   }
 
   return taskDateText;
 };
 
+/**
+ * Renders the details for a task.
+ * @param {Object} project - The project object.
+ * @param {Object} task - The task object.
+ * @returns {HTMLDivElement} - The rendered task details element.
+ */
 const renderTaskDetails = (project, task) => {
   const taskDetails = document.createElement("div");
   const taskHeader = document.createElement("div");
   const taskName = document.createElement("div");
-  const taskDropdown = renderTaskDropdown(project, task);
+  const taskDropdown = renderDropdownToggle(project, task);
   const taskDescription = document.createElement("div");
   const taskDueDate = document.createElement("div");
 
@@ -413,6 +421,11 @@ const renderTaskDetails = (project, task) => {
   return taskDetails;
 };
 
+/**
+ * Renders task items for a project.
+ * @param {Object} project - The project object.
+ * @param {Object[]} tasks - Array of task objects.
+ */
 const renderTaskItems = (project, tasks) => {
   tasks.forEach((task) => {
     const taskListItem = renderTaskListItem(task);
@@ -426,15 +439,118 @@ const renderTaskItems = (project, tasks) => {
   });
 };
 
+/**
+ * Sets the delete project name for modal confirmation.
+ * @param {HTMLButtonElement} button - The delete project button.
+ */
+export const setDeleteProjectName = (button) => {
+  const projectName = button.getAttribute("data-project");
+  deleteProjectName.textContent = projectName;
+};
+
+/**
+ * Sets the edit project name for modal form.
+ * @param {HTMLButtonElement} button - The edit project button.
+ */
+export const setEditProjectName = (button) => {
+  const projectName = button.getAttribute("data-project");
+  editProjectNameInput.value = projectName;
+  editProjectNameInput.setAttribute("data-project", projectName);
+};
+
+/**
+ * Sets the delete task name for modal confirmation.
+ * @param {HTMLButtonElement} button - The delete task button.
+ */
+export const setDeleteTaskName = (button) => {
+  const taskName = button.getAttribute("data-task");
+  deleteTaskName.textContent = taskName;
+};
+
+/**
+ * Sets the delete task project for modal confirmation.
+ * @param {HTMLButtonElement} button - The delete task button.
+ */
+export const setDeleteTaskProject = (button) => {
+  const projectName = button.getAttribute("data-project");
+  deleteTaskBtn.setAttribute("data-project", projectName);
+};
+
+/**
+ * Toggles the collapse icon.
+ * @param {Event} e - The click event.
+ */
+export const toggleCollapseIcon = (e) => {
+  const icon = e.target.firstElementChild;
+  const oldClass = icon.classList.contains("bi-chevron-down")
+    ? "bi-chevron-down"
+    : "bi-chevron-right";
+  const newClass = icon.classList.contains("bi-chevron-down")
+    ? "bi-chevron-right"
+    : "bi-chevron-down";
+  replaceIcon(icon, oldClass, newClass);
+};
+
+/**
+ * Renders hover effect for add task button.
+ * @param {Event} e - The mouseover event.
+ */
+export const renderAddTaskHoverEffect = (e) => {
+  const buttonIcon = e.target.firstChild;
+  const oldClass = buttonIcon.classList.contains("bi-plus-lg")
+    ? "bi-plus-lg"
+    : "bi-plus-circle-fill";
+  const newClass = buttonIcon.classList.contains("bi-plus-lg")
+    ? "bi-plus-circle-fill"
+    : "bi-plus-lg";
+  replaceIcon(buttonIcon, oldClass, newClass);
+};
+
+/**
+ * Renders hover effect for task priority checkbox.
+ * @param {Event} e - The mouseover event.
+ */
+export const renderTaskPriorityHoverEffect = (e) => {
+  const taskCheckbox = e.target;
+  const oldClass = taskCheckbox.classList.contains("bi-circle")
+    ? "bi-circle"
+    : "bi-check-circle";
+  const newClass = taskCheckbox.classList.contains("bi-circle")
+    ? "bi-check-circle"
+    : "bi-circle";
+  replaceIcon(taskCheckbox, oldClass, newClass);
+};
+
+/**
+ * Renders project buttons.
+ * @param {Object[]} projectArray - Array of project objects.
+ */
+export const renderProjectBtns = (projectArray) => {
+  clearElement(projectList);
+
+  projectArray.forEach((project) => {
+    const projectItem = renderProjectListItem(project);
+    projectList.appendChild(projectItem);
+  });
+};
+
+/**
+ * Renders project details.
+ * @param {Object} project - The project object.
+ */
 export const renderProjectDetails = (project) => {
   clearProjectDetails();
   activateProjectBtn(project.name);
   renderProjectHeader(project.name);
-  clearTaskBtns();
+  clearElement(projectTaskList);
   renderTaskItems(project, project.tasks);
   renderAddTaskOption(project.name);
 };
 
+/**
+ * Renders details for all projects.
+ * @param {Object[]} projectArray - Array of project objects.
+ */
 export const renderAllProjectDetails = (projectArray) => {
   clearProjectDetails();
   activateProjectBtn("All My Tasks");
@@ -447,6 +563,10 @@ export const renderAllProjectDetails = (projectArray) => {
   renderAddTaskOption("All My Tasks");
 };
 
+/**
+ * Renders details for "My Day" project.
+ * @param {Object[]} projectArray - Array of project objects.
+ */
 export const renderMyDayProjectDetails = (projectArray) => {
   clearProjectDetails();
   activateProjectBtn("My Day");
@@ -464,6 +584,10 @@ export const renderMyDayProjectDetails = (projectArray) => {
   renderAddTaskOption("My Day");
 };
 
+/**
+ * Renders details for "Next 7 Days" project.
+ * @param {Object[]} projectArray - Array of project objects.
+ */
 export const renderNext7DaysProjectDetails = (projectArray) => {
   clearProjectDetails();
   activateProjectBtn("Next 7 Days");
@@ -488,10 +612,13 @@ export const renderNext7DaysProjectDetails = (projectArray) => {
   renderAddTaskOption("Next 7 Days");
 };
 
+/**
+ * Renders project dropdown options.
+ * @param {Object[]} projectArray - Array of project objects.
+ * @param {HTMLSelectElement} projectDropdown - The project dropdown element.
+ */
 export const renderProjectDropdown = (projectArray, projectDropdown) => {
-  while (projectDropdown.firstChild) {
-    projectDropdown.removeChild(projectDropdown.firstChild);
-  }
+  clearElement(projectDropdown);
 
   projectArray.forEach((project) => {
     const option = document.createElement("option");
@@ -499,14 +626,4 @@ export const renderProjectDropdown = (projectArray, projectDropdown) => {
     option.textContent = project.name;
     projectDropdown.appendChild(option);
   });
-};
-
-export const setDeleteTaskName = (button) => {
-  const taskName = button.getAttribute("data-task");
-  deleteTaskName.textContent = taskName;
-};
-
-export const setDeleteTaskProject = (button) => {
-  const projectName = button.getAttribute("data-project");
-  deleteTaskBtn.setAttribute("data-project", projectName);
 };

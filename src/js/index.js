@@ -1,7 +1,10 @@
+/**
+ * Module responsible for managing project tasks and UI interactions.
+ * @module index
+ */
+
 import "../style.scss";
 import "bootstrap";
-import getFormData from "./form";
-import saveProjects from "./local-storage";
 import {
   addProject,
   findProject,
@@ -9,6 +12,13 @@ import {
   deleteProject,
   editProject,
 } from "./project";
+import {
+  addTask,
+  findTask,
+  deleteTask,
+  toggleTaskStatus,
+  editTask,
+} from "./task";
 import {
   renderProjectBtns,
   setDeleteProjectName,
@@ -24,92 +34,132 @@ import {
   setDeleteTaskName,
   setDeleteTaskProject,
 } from "./ui";
-import {
-  addTask,
-  findTask,
-  deleteTask,
-  toggleTaskStatus,
-  editTask,
-} from "./task";
+import getFormData from "./form";
+import saveProjects from "./local-storage";
 
 const sidebar = document.querySelector("#sidebar");
 const collapseBtn = document.querySelector(".collapse-btn");
-const addProjectForm = document.querySelector("#add-project-form");
-const projectNameInput = document.querySelector("#project-name");
-const addProjectBtn = document.querySelector(".add-project-btn");
-const deleteProjectBtn = document.querySelector(".delete-project-btn");
-const editProjectForm = document.querySelector("#edit-project-form");
-const editProjectNameInput = document.querySelector("#edit-project-name");
-const editProjectBtn = document.querySelector(".edit-project-btn");
-const projectTaskList = document.querySelector(".project-task-list");
-const addTaskForm = document.querySelector("#add-task-form");
-const taskNameInput = document.querySelector("#task-name");
-const taskProjectDropdown = document.querySelector("#task-project");
-const addTaskBtn = document.querySelector(".add-task-btn");
-const deleteTaskBtn = document.querySelector(".delete-task-btn");
-const editTaskForm = document.querySelector("#edit-task-form");
-const editTaskNameInput = document.querySelector("#edit-task-name");
-const editTaskProjectDropdown = document.querySelector("#edit-task-project");
-const editTaskBtn = document.querySelector(".edit-task-btn");
 const baseProjects = ["All My Tasks", "My Day", "Next 7 Days"];
 
-const validateProjectName = (nameInput, submitBtn) => {
-  if (findProject(nameInput.value.trim()) !== undefined) {
-    nameInput.setCustomValidity("Project already exists");
-  } else {
-    nameInput.setCustomValidity("");
-  }
+const select = (selector) => document.querySelector(selector);
 
-  if (nameInput.checkValidity()) {
-    submitBtn.setAttribute("data-bs-dismiss", "modal");
-  } else {
-    submitBtn.removeAttribute("data-bs-dismiss");
-  }
+/**
+ * DOM elements used in the task manager module.
+ * @constant {object}
+ */
+const elements = {
+  addProjectForm: select("#add-project-form"),
+  addProjectBtn: select(".add-project-btn"),
+  deleteProjectBtn: select(".delete-project-btn"),
+  editProjectForm: select("#edit-project-form"),
+  editProjectBtn: select(".edit-project-btn"),
+  projectNameInput: select("#project-name"),
+  editProjectNameInput: select("#edit-project-name"),
+  projectTaskList: select(".project-task-list"),
+  addTaskForm: select("#add-task-form"),
+  taskNameInput: select("#task-name"),
+  taskProjectDropdown: select("#task-project"),
+  addTaskBtn: select(".add-task-btn"),
+  deleteTaskBtn: select(".delete-task-btn"),
+  editTaskForm: select("#edit-task-form"),
+  editTaskNameInput: select("#edit-task-name"),
+  editTaskProjectDropdown: select("#edit-task-project"),
 };
 
-const validateTaskName = (nameInput) => {
-  const taskProject = document.querySelector("#task-project").value;
+/**
+ * Validates the project name input field.
+ * @param {HTMLInputElement} nameInput - The input field for project name.
+ * @param {HTMLButtonElement} submitBtn - The submit button for the form.
+ */
+const validateProjectName = (nameInput, submitBtn) => {
+  const projectExists = findProject(nameInput.value.trim()) !== undefined;
+  nameInput.setCustomValidity(projectExists ? "Project already exists" : "");
 
-  if (findProject(taskProject) === undefined) {
+  submitBtn.setAttribute(
+    "data-bs-dismiss",
+    nameInput.checkValidity() ? "modal" : null
+  );
+};
+
+/**
+ * Validates the task name input field.
+ * @param {HTMLInputElement} nameInput - The input field for task name.
+ * @param {HTMLSelectElement} projectInput - The select field for project name.
+ */
+const validateTaskName = (nameInput, projectInput) => {
+  const projectNotFound = findProject(projectInput.value) === undefined;
+  const taskExists =
+    findTask(findProject(projectInput.value), nameInput.value.trim()) !==
+    undefined;
+
+  if (projectNotFound) {
     nameInput.setCustomValidity("You must create a project first");
-  } else if (
-    findTask(findProject(taskProject), nameInput.value.trim()) !== undefined
-  ) {
+  } else if (taskExists) {
     nameInput.setCustomValidity("Task already exists");
   } else {
     nameInput.setCustomValidity("");
   }
 };
 
+/**
+ * Collapses the form if it's valid.
+ * @param {HTMLFormElement} form - The form element to check validity.
+ * @param {HTMLButtonElement} submitBtn - The submit button for the form.
+ */
 const collapseForm = (form, submitBtn) => {
-  if (form.checkValidity()) {
-    submitBtn.setAttribute("data-bs-dismiss", "modal");
-  } else {
-    submitBtn.removeAttribute("data-bs-dismiss");
-  }
+  submitBtn.setAttribute(
+    "data-bs-dismiss",
+    form.checkValidity() ? "modal" : null
+  );
 };
-
+/**
+ * Sets the details for adding a new task based on the selected project.
+ * @param {HTMLElement} button - The button triggering the action.
+ */
 const setAddTaskDetails = (button) => {
   const projectName = button.getAttribute("data-project");
   if (baseProjects.includes(projectName)) return;
 
-  document.querySelector("#task-project").value = projectName;
+  elements.taskProjectDropdown.value = projectName;
 };
 
+/**
+ * Sets the details for editing a task based on the selected project and task.
+ * @param {HTMLElement} button - The button triggering the action.
+ */
 const setEditTaskDetails = (button) => {
   const projectName = button.getAttribute("data-project");
   const taskName = button.getAttribute("data-task");
   const project = findProject(projectName);
   const task = findTask(project, taskName);
 
-  document.querySelector("#edit-task-name").value = taskName;
-  document.querySelector("#edit-task-description").value = task.description;
-  document.querySelector("#edit-task-date").value = task.dueDate;
-  document.querySelector("#edit-task-priority").value = task.priority;
-  document.querySelector("#edit-task-project").value = projectName;
+  elements.editTaskNameInput.value = taskName;
+  elements.editTaskDescription.value = task.description;
+  elements.editTaskDate.value = task.dueDate;
+  elements.editTaskPriority.value = task.priority;
+  elements.editTaskProjectDropdown.value = projectName;
 
-  editTaskNameInput.setAttribute("data-task", taskName);
-  editTaskBtn.setAttribute("data-project", projectName);
+  elements.editTaskNameInput.setAttribute("data-task", taskName);
+  elements.editTaskBtn.setAttribute("data-project", projectName);
+};
+/**
+ * Renders the appropriate project details based on the selected project name.
+ * @param {string} projectName - The name of the project.
+ */
+const renderProject = (projectName) => {
+  switch (projectName) {
+    case "All My Tasks":
+      renderAllProjectDetails(getProjects());
+      break;
+    case "My Day":
+      renderMyDayProjectDetails(getProjects());
+      break;
+    case "Next 7 Days":
+      renderNext7DaysProjectDetails(getProjects());
+      break;
+    default:
+      renderProjectDetails(findProject(projectName));
+  }
 };
 
 collapseBtn.addEventListener("click", toggleCollapseIcon);
@@ -120,50 +170,34 @@ sidebar.addEventListener("click", (e) => {
   } else if (e.target.classList.contains("edit-project-option")) {
     setEditProjectName(e.target);
   } else if (e.target.classList.contains("project-btn")) {
-    const projectName = e.target.getAttribute("data-project");
-
-    if (projectName === "All My Tasks") {
-      renderAllProjectDetails(getProjects());
-    } else if (projectName === "My Day") {
-      renderMyDayProjectDetails(getProjects());
-    } else if (projectName === "Next 7 Days") {
-      renderNext7DaysProjectDetails(getProjects());
-    } else {
-      renderProjectDetails(findProject(projectName));
-    }
+    renderProject(e.target.getAttribute("data-project"));
   }
 });
 
-projectTaskList.addEventListener("click", (e) => {
+elements.projectTaskList.addEventListener("click", (e) => {
   if (e.target.classList.contains("add-task-option")) {
-    renderProjectDropdown(getProjects(), taskProjectDropdown);
+    renderProjectDropdown(getProjects(), elements.taskProjectDropdown);
     setAddTaskDetails(e.target);
   } else if (e.target.classList.contains("delete-task-option")) {
     setDeleteTaskName(e.target);
     setDeleteTaskProject(e.target);
   } else if (e.target.classList.contains("edit-task-option")) {
-    renderProjectDropdown(getProjects(), editTaskProjectDropdown);
+    renderProjectDropdown(getProjects(), elements.editTaskProjectDropdown);
     setEditTaskDetails(e.target);
   }
 });
 
 ["mouseout", "mouseover"].forEach((event) => {
-  projectTaskList.addEventListener(event, (e) => {
+  elements.projectTaskList.addEventListener(event, (e) => {
     if (e.target.classList.contains("add-task-option")) {
       renderAddTaskHoverEffect(e);
-    }
-  });
-});
-
-["mouseout", "mouseover"].forEach((event) => {
-  projectTaskList.addEventListener(event, (e) => {
-    if (e.target.classList.contains("task-priority-icon")) {
+    } else if (e.target.classList.contains("task-priority-icon")) {
       renderTaskPriorityHoverEffect(e);
     }
   });
 });
 
-projectTaskList.addEventListener("click", (e) => {
+elements.projectTaskList.addEventListener("click", (e) => {
   if (e.target.classList.contains("task-priority-icon")) {
     const projectName = e.target.getAttribute("data-project");
     const taskName = e.target.getAttribute("data-task");
@@ -174,64 +208,63 @@ projectTaskList.addEventListener("click", (e) => {
   }
 });
 
-projectNameInput.addEventListener("input", () => {
-  validateProjectName(projectNameInput, addProjectBtn);
+elements.projectNameInput.addEventListener("input", () => {
+  validateProjectName(elements.projectNameInput, elements.addProjectBtn);
 });
 
-addProjectForm.addEventListener("submit", (e) => {
+elements.addProjectForm.addEventListener("submit", (e) => {
   e.preventDefault();
-  const project = getFormData(addProjectForm);
+  const project = getFormData(elements.addProjectForm);
   addProject(project.name.trim());
   saveProjects(getProjects());
   renderProjectBtns(getProjects());
-  addProjectForm.reset();
+  elements.addProjectForm.reset();
   renderProjectDetails(findProject(project.name));
 });
 
-deleteProjectBtn.addEventListener("click", () => {
-  const projectName = document.querySelector(
-    ".delete-project-name"
-  ).textContent;
+elements.deleteProjectBtn.addEventListener("click", () => {
+  const projectName = select(".delete-project-name").textContent;
   deleteProject(projectName);
   saveProjects(getProjects());
   renderProjectBtns(getProjects());
 
-  const projectTitle = document.querySelector(".project-title");
+  const projectTitle = select(".project-title");
   if (projectTitle.textContent === projectName) {
     renderMyDayProjectDetails(getProjects());
   }
 });
 
-editProjectNameInput.addEventListener("input", () => {
-  validateProjectName(editProjectNameInput, editProjectBtn);
+elements.editProjectNameInput.addEventListener("input", () => {
+  validateProjectName(elements.editProjectNameInput, elements.editProjectBtn);
 });
 
-editProjectForm.addEventListener("submit", (e) => {
+elements.editProjectForm.addEventListener("submit", (e) => {
   e.preventDefault();
-  const projectName = editProjectNameInput.getAttribute("data-project");
-  const newProject = getFormData(editProjectForm);
+  const projectName =
+    elements.editProjectNameInput.getAttribute("data-project");
+  const newProject = getFormData(elements.editProjectForm);
   editProject(projectName, newProject.name.trim());
   saveProjects(getProjects());
   renderProjectBtns(getProjects());
-  editProjectForm.reset();
+  elements.editProjectForm.reset();
 
-  const projectTitle = document.querySelector(".project-title");
+  const projectTitle = select(".project-title");
   if (projectTitle.textContent === projectName) {
     renderProjectDetails(findProject(newProject.name));
   }
 });
 
-taskNameInput.addEventListener("input", () => {
-  validateTaskName(taskNameInput);
+elements.taskNameInput.addEventListener("input", () => {
+  validateTaskName(elements.taskNameInput, elements.taskProjectInput);
 });
 
-addTaskForm.addEventListener("input", () => {
-  collapseForm(addTaskForm, addTaskBtn);
+elements.addTaskForm.addEventListener("input", () => {
+  collapseForm(elements.addTaskForm, elements.addTaskBtn);
 });
 
-addTaskForm.addEventListener("submit", (e) => {
+elements.addTaskForm.addEventListener("submit", (e) => {
   e.preventDefault();
-  const task = getFormData(addTaskForm);
+  const task = getFormData(elements.addTaskForm);
   addTask(
     findProject(task.project),
     task.name.trim(),
@@ -240,33 +273,33 @@ addTaskForm.addEventListener("submit", (e) => {
     task.priority
   );
   saveProjects(getProjects());
-  if (document.querySelector(".project-title").textContent === task.project) {
+  if (select(".project-title").textContent === task.project) {
     renderProjectDetails(findProject(task.project));
   }
-  addTaskForm.reset();
+  elements.addTaskForm.reset();
 });
 
-deleteTaskBtn.addEventListener("click", (e) => {
+elements.deleteTaskBtn.addEventListener("click", (e) => {
   const projectName = e.target.getAttribute("data-project");
-  const taskName = document.querySelector(".delete-task-name").textContent;
+  const taskName = select(".delete-task-name").textContent;
   deleteTask(findProject(projectName), taskName);
 
   renderProjectDetails(findProject(projectName));
 });
 
-editTaskNameInput.addEventListener("input", () => {
-  validateTaskName(editTaskNameInput);
+elements.editTaskNameInput.addEventListener("input", () => {
+  validateTaskName(elements.editTaskNameInput, elements.editTaskProjectInput);
 });
 
-editTaskForm.addEventListener("input", () => {
-  collapseForm(editTaskForm, editTaskBtn);
+elements.editTaskForm.addEventListener("input", () => {
+  collapseForm(elements.editTaskForm, elements.editTaskBtn);
 });
 
-editTaskForm.addEventListener("submit", (e) => {
+elements.editTaskForm.addEventListener("submit", (e) => {
   e.preventDefault();
-  const projectName = editTaskBtn.getAttribute("data-project");
-  const taskName = editTaskNameInput.getAttribute("data-task");
-  const newTask = getFormData(editTaskForm);
+  const projectName = elements.editTaskBtn.getAttribute("data-project");
+  const taskName = elements.editTaskNameInput.getAttribute("data-task");
+  const newTask = getFormData(elements.editTaskForm);
   editTask(
     findProject(projectName),
     taskName,
@@ -278,7 +311,7 @@ editTaskForm.addEventListener("submit", (e) => {
   );
   saveProjects(getProjects());
   renderProjectDetails(findProject(projectName));
-  editTaskForm.reset();
+  elements.editTaskForm.reset();
 });
 
 renderMyDayProjectDetails(getProjects());
