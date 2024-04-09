@@ -3,8 +3,8 @@
  * @module index
  */
 
-import "../style.scss";
-import "bootstrap";
+import "../scss/style.scss";
+import "./bootstrap";
 import {
   addProject,
   findProject,
