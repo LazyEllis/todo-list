@@ -5,8 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "watch": "nodemon --watch webpack.config.js --watch \"src/**/*\" --ext * --exec \"SET NODE_ENV=development&webpack\"",
-    "build": "SET NODE_ENV=production&webpack",
+    "watch": "nodemon --watch webpack.config.js --watch \"src/**/*\" --exec \"NODE_ENV=development webpack\"",
+    "build": "NODE_ENV=production webpack",
     "deploy": "npm run build && gh-pages -d dist"
   },
   "keywords": [],
