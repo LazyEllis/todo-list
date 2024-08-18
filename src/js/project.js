@@ -1,64 +1,46 @@
 /**
- * Factory function to create a project object.
- * @param {string} name - The name of the project.
- * @returns {Object} - The created project object.
+ * Represents a project, which contains a list of tasks.
  */
-export const projectFactory = (name) => {
-  const tasks = [];
-  return { name, tasks };
-};
-
-// Retrieve projects from local storage or initialize an empty array
-const projects = JSON.parse(localStorage.getItem("projects")) || [];
-
-/**
- * Gets all projects.
- * @returns {Array} - Array containing all projects.
- */
-export const getProjects = () => projects;
-
-export const saveProjects = () => {
-  localStorage.setItem("projects", JSON.stringify(projects));
-};
-
-/**
- * Finds a project by its name.
- * @param {string} name - The name of the project to find.
- * @returns {Object|null} - The found project object, or null if not found.
- */
-export const findProject = (name) => {
-  return projects.find((project) => project.name === name.trim());
-};
-
-/**
- * Adds a new project.
- * @param {string} name - The name of the project to add.
- */
-export const addProject = (name) => {
-  const project = projectFactory(name);
-  projects.push(project);
-  saveProjects();
-};
-
-/**
- * Deletes a project by its name.
- * @param {string} name - The name of the project to delete.
- */
-export const deleteProject = (name) => {
-  const project = findProject(name);
-  projects.splice(projects.indexOf(project), 1);
-  saveProjects();
-};
-
-/**
- * Edits the name of a project.
- * @param {string} name - The current name of the project.
- * @param {string} newName - The new name for the project.
- */
-export const editProject = (name, newName) => {
-  const project = findProject(name);
-  if (project) {
-    project.name = newName;
+export default class Project {
+  /**
+   * Creates an instance of Project.
+   * @param {string} name - The name of the project.
+   */
+  constructor(name) {
+    this.name = name;
+    this.tasks = [];
   }
-  saveProjects();
-};
+
+  /**
+   * Adds a task to the project.
+   * @param {Task} task - The task to add.
+   */
+  addTask(task) {
+    this.tasks.push(task);
+  }
+
+  /**
+   * Finds a task by name.
+   * @param {string} taskName - The name of the task to find.
+   * @returns {Task|undefined} The task with the given name, or undefined if not found.
+   */
+  findTask(taskName) {
+    return this.tasks.find((task) => task.name === taskName);
+  }
+
+  /**
+   * Deletes a task by name.
+   * @param {string} taskName - The name of the task to delete.
+   */
+  deleteTask(taskName) {
+    this.tasks = this.tasks.filter((task) => task.name !== taskName);
+  }
+
+  /**
+   * Edits the project name.
+   * @param {string} newName - The new name of the project.
+   */
+  edit(newName) {
+    this.name = newName;
+  }
+}

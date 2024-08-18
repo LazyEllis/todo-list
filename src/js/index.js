@@ -1,20 +1,8 @@
 import "../scss/style.scss";
 import "./bootstrap";
-import {
-  addProject,
-  findProject,
-  getProjects,
-  saveProjects,
-  deleteProject,
-  editProject,
-} from "./project";
-import {
-  addTask,
-  findTask,
-  deleteTask,
-  toggleTaskStatus,
-  editTask,
-} from "./task";
+import ProjectRepository from "./project-repository";
+import Project from "./project";
+import Task from "./task";
 import {
   renderProjectBtns,
   setDeleteProjectName,
@@ -32,17 +20,23 @@ import {
 } from "./ui";
 import getFormData from "./form";
 
-const sidebar = document.querySelector("#sidebar");
-const collapseBtn = document.querySelector(".collapse-btn");
+// Initialize the project repository
+const projectRepo = new ProjectRepository();
+
+// Base projects to be displayed by default
 const baseProjects = ["All My Tasks", "My Day", "Next 7 Days"];
 
+/**
+ * Utility function to select a DOM element.
+ * @param {string} selector - The CSS selector for the element.
+ * @returns {Element} The selected DOM element.
+ */
 const select = (selector) => document.querySelector(selector);
 
-/**
- * DOM elements used in the task manager module.
- * @constant {object}
- */
+// Object holding references to important DOM elements
 const elements = {
+  sidebar: select("#sidebar"),
+  collapseBtn: select(".collapse-btn"),
   addProjectForm: select("#add-project-form"),
   addProjectBtn: select(".add-project-btn"),
   deleteProjectBtn: select(".delete-project-btn"),
@@ -66,14 +60,14 @@ const elements = {
 };
 
 /**
- * Validates the project name input field.
- * @param {HTMLInputElement} nameInput - The input field for project name.
- * @param {HTMLButtonElement} submitBtn - The submit button for the form.
+ * Validates if a project name already exists.
+ * Updates the custom validity message and the submit button's dismiss attribute.
+ * @param {HTMLInputElement} nameInput - The input element for the project name.
+ * @param {HTMLButtonElement} submitBtn - The submit button element.
  */
 const validateProjectName = (nameInput, submitBtn) => {
-  const projectExists = findProject(nameInput.value.trim()) !== undefined;
+  const projectExists = projectRepo.find(nameInput.value.trim()) !== undefined;
   nameInput.setCustomValidity(projectExists ? "Project already exists" : "");
-
   submitBtn.setAttribute(
     "data-bs-dismiss",
     nameInput.checkValidity() ? "modal" : null
@@ -81,17 +75,16 @@ const validateProjectName = (nameInput, submitBtn) => {
 };
 
 /**
- * Validates the task name input field.
- * @param {HTMLInputElement} nameInput - The input field for task name.
- * @param {HTMLSelectElement} projectDropdown - The select field for project name.
+ * Validates if a task name already exists within a project.
+ * Updates the custom validity message for the task name input.
+ * @param {HTMLInputElement} nameInput - The input element for the task name.
+ * @param {HTMLSelectElement} projectDropdown - The dropdown element for selecting a project.
  */
 const validateTaskName = (nameInput, projectDropdown) => {
-  const projectNotFound = findProject(projectDropdown.value) === undefined;
-  const taskExists =
-    findTask(findProject(projectDropdown.value), nameInput.value.trim()) !==
-    undefined;
+  const project = projectRepo.find(projectDropdown.value);
+  const taskExists = project?.findTask(nameInput.value.trim()) !== undefined;
 
-  if (projectNotFound) {
+  if (!project) {
     nameInput.setCustomValidity("You must create a project first");
   } else if (taskExists) {
     nameInput.setCustomValidity("Task already exists");
@@ -101,9 +94,9 @@ const validateTaskName = (nameInput, projectDropdown) => {
 };
 
 /**
- * Collapses the form if it's valid.
- * @param {HTMLFormElement} form - The form element to check validity.
- * @param {HTMLButtonElement} submitBtn - The submit button for the form.
+ * Collapses the form if it is valid.
+ * @param {HTMLFormElement} form - The form element to be validated and collapsed.
+ * @param {HTMLButtonElement} submitBtn - The submit button element.
  */
 const collapseForm = (form, submitBtn) => {
   submitBtn.setAttribute(
@@ -113,64 +106,70 @@ const collapseForm = (form, submitBtn) => {
 };
 
 /**
- * Sets the details for adding a new task based on the selected project.
- * @param {HTMLElement} button - The button triggering the action.
+ * Sets the default project for adding a new task.
+ * Prevents assignment to base projects.
+ * @param {HTMLElement} button - The button element triggering the task addition.
  */
 const setAddTaskDetails = (button) => {
   const projectName = button.getAttribute("data-project");
   if (baseProjects.includes(projectName)) return;
-
   elements.taskProjectDropdown.value = projectName;
 };
 
 /**
- * Sets the details for editing a task based on the selected project and task.
- * @param {HTMLElement} button - The button triggering the action.
+ * Sets the details in the form for editing an existing task.
+ * @param {HTMLElement} button - The button element triggering the task edit.
  */
 const setEditTaskDetails = (button) => {
   const projectName = button.getAttribute("data-project");
   const taskName = button.getAttribute("data-task");
-  const project = findProject(projectName);
-  const task = findTask(project, taskName);
+  const project = projectRepo.find(projectName);
+  const task = project?.findTask(taskName);
 
-  elements.editTaskNameInput.value = taskName;
+  elements.editTaskNameInput.value = task.name;
   elements.editTaskDescription.value = task.description;
   elements.editTaskDate.value = task.dueDate;
   elements.editTaskPriority.value = task.priority;
   elements.editTaskProjectDropdown.value = projectName;
-
   elements.editTaskNameInput.setAttribute("data-task", taskName);
   elements.editTaskBtn.setAttribute("data-project", projectName);
 };
 
 /**
- * Renders the appropriate project details based on the selected project name.
- * @param {string} projectName - The name of the project.
+ * Renders the selected project details based on the project name.
+ * @param {string} projectName - The name of the project to be rendered.
  */
 const renderProject = (projectName) => {
   switch (projectName) {
     case "All My Tasks":
-      renderAllProjectDetails(getProjects());
+      renderAllProjectDetails(projectRepo.getAll());
       break;
     case "My Day":
-      renderMyDayProjectDetails(getProjects());
+      renderMyDayProjectDetails(projectRepo.getAll());
       break;
     case "Next 7 Days":
-      renderNext7DaysProjectDetails(getProjects());
+      renderNext7DaysProjectDetails(projectRepo.getAll());
       break;
     default:
-      renderProjectDetails(findProject(projectName));
+      renderProjectDetails(projectRepo.find(projectName));
   }
 };
 
+/**
+ * Renders the details of the current project based on the selected title.
+ */
 const renderCurrentProject = () => {
   const projectTitle = select(".project-title");
   renderProject(projectTitle.textContent);
 };
 
-collapseBtn.addEventListener("click", toggleCollapseIcon);
+// Event listeners for various UI interactions
 
-sidebar.addEventListener("click", (e) => {
+// Toggles the collapse button icon
+elements.collapseBtn.addEventListener("click", toggleCollapseIcon);
+
+// Handles sidebar project actions like delete, edit, and view
+elements.sidebar.addEventListener("click", (e) => {
   if (e.target.classList.contains("delete-project-option")) {
     setDeleteProjectName(e.target);
   } else if (e.target.classList.contains("edit-project-option")) {
@@ -180,19 +179,24 @@ sidebar.addEventListener("click", (e) => {
   }
 });
 
+// Handles project task list interactions
 elements.projectTaskList.addEventListener("click", (e) => {
   if (e.target.classList.contains("add-task-option")) {
-    renderProjectDropdown(getProjects(), elements.taskProjectDropdown);
+    renderProjectDropdown(projectRepo.getAll(), elements.taskProjectDropdown);
     setAddTaskDetails(e.target);
   } else if (e.target.classList.contains("delete-task-option")) {
     setDeleteTaskName(e.target);
     setDeleteTaskProject(e.target);
   } else if (e.target.classList.contains("edit-task-option")) {
-    renderProjectDropdown(getProjects(), elements.editTaskProjectDropdown);
+    renderProjectDropdown(
+      projectRepo.getAll(),
+      elements.editTaskProjectDropdown
+    );
     setEditTaskDetails(e.target);
   }
 });
 
+// Handles hover effects for task actions
 ["mouseout", "mouseover"].forEach((event) => {
   elements.projectTaskList.addEventListener(event, (e) => {
     if (e.target.classList.contains("add-task-option")) {
@@ -203,35 +207,44 @@ elements.projectTaskList.addEventListener("click", (e) => {
   });
 });
 
+// Toggles task completion status
 elements.projectTaskList.addEventListener("click", (e) => {
   if (e.target.classList.contains("task-priority-icon")) {
     const projectName = e.target.getAttribute("data-project");
     const taskName = e.target.getAttribute("data-task");
 
-    toggleTaskStatus(findProject(projectName), taskName);
-    saveProjects();
+    const project = projectRepo.find(projectName);
+    const task = project?.findTask(taskName);
+    task?.toggleStatus();
+
+    projectRepo.save();
     renderCurrentProject();
   }
 });
 
+// Project name validation during input
 elements.projectNameInput.addEventListener("input", () => {
   validateProjectName(elements.projectNameInput, elements.addProjectBtn);
 });
 
+// Handles project creation
 elements.addProjectForm.addEventListener("submit", (e) => {
   e.preventDefault();
-  const project = getFormData(elements.addProjectForm);
-  addProject(project.name.trim());
-  renderProjectBtns(getProjects());
+  const projectData = getFormData(elements.addProjectForm);
+  const project = new Project(projectData.name.trim());
+  projectRepo.add(project);
+
+  renderProjectBtns(projectRepo.getAll());
   elements.addProjectForm.reset();
   renderProject(project.name);
 });
 
+// Handles project deletion
 elements.deleteProjectBtn.addEventListener("click", () => {
   const projectName = select(".delete-project-name").textContent;
-  deleteProject(projectName);
-  renderProjectBtns(getProjects());
+  projectRepo.delete(projectName);
 
+  renderProjectBtns(projectRepo.getAll());
   const projectTitle = select(".project-title");
   if (projectTitle.textContent === projectName) {
     renderProject("My Day");
@@ -240,52 +253,69 @@ elements.deleteProjectBtn.addEventListener("click", () => {
   }
 });
 
+// Project name validation during editing
 elements.editProjectNameInput.addEventListener("input", () => {
   validateProjectName(elements.editProjectNameInput, elements.editProjectBtn);
 });
 
+// Handles project editing
 elements.editProjectForm.addEventListener("submit", (e) => {
   e.preventDefault();
-  const projectName =
+  const originalName =
     elements.editProjectNameInput.getAttribute("data-project");
-  const newProject = getFormData(elements.editProjectForm);
-  editProject(projectName, newProject.name.trim());
-  renderProjectBtns(getProjects());
+  const newProjectData = getFormData(elements.editProjectForm);
+
+  const project = projectRepo.find(originalName);
+  project?.edit(newProjectData.name);
+  projectRepo.save();
+
+  renderProjectBtns(projectRepo.getAll());
   elements.editProjectForm.reset();
-  renderProject(newProject.name);
+  renderProject(newProjectData.name);
 });
 
+// Task name validation during input
 elements.taskNameInput.addEventListener("input", () => {
   validateTaskName(elements.taskNameInput, elements.taskProjectDropdown);
 });
 
+// Collapse the task form if valid
 elements.addTaskForm.addEventListener("input", () => {
   collapseForm(elements.addTaskForm, elements.addTaskBtn);
 });
 
+// Handles task creation
 elements.addTaskForm.addEventListener("submit", (e) => {
   e.preventDefault();
-  const task = getFormData(elements.addTaskForm);
-  addTask(
-    findProject(task.project),
-    task.name.trim(),
-    task.description.trim(),
-    task.dueDate,
-    task.priority
+  const taskData = getFormData(elements.addTaskForm);
+  const project = projectRepo.find(taskData.project);
+  const task = new Task(
+    taskData.name.trim(),
+    taskData.description.trim(),
+    taskData.dueDate,
+    taskData.priority
   );
-  saveProjects();
+
+  project?.addTask(task);
+  projectRepo.save();
+
   renderCurrentProject();
   elements.addTaskForm.reset();
 });
 
+// Handles task deletion
 elements.deleteTaskBtn.addEventListener("click", (e) => {
   const projectName = e.target.getAttribute("data-project");
   const taskName = select(".delete-task-name").textContent;
-  deleteTask(findProject(projectName), taskName);
-  saveProjects();
+
+  const project = projectRepo.find(projectName);
+  project?.deleteTask(taskName);
+
+  projectRepo.save();
   renderCurrentProject();
 });
 
+// Task name validation during editing
 elements.editTaskNameInput.addEventListener("input", () => {
   validateTaskName(
     elements.editTaskNameInput,
@@ -293,28 +323,39 @@ elements.editTaskNameInput.addEventListener("input", () => {
   );
 });
 
+// Collapse the edit task form if valid
 elements.editTaskForm.addEventListener("input", () => {
   collapseForm(elements.editTaskForm, elements.editTaskBtn);
 });
 
+// Handles task editing
 elements.editTaskForm.addEventListener("submit", (e) => {
   e.preventDefault();
   const projectName = elements.editTaskBtn.getAttribute("data-project");
-  const taskName = elements.editTaskNameInput.getAttribute("data-task");
-  const newTask = getFormData(elements.editTaskForm);
-  editTask(
-    findProject(projectName),
-    taskName,
-    findProject(newTask.project),
-    newTask.name.trim(),
-    newTask.description.trim(),
-    newTask.dueDate,
-    newTask.priority
+  const originalTaskName = elements.editTaskNameInput.getAttribute("data-task");
+  const taskData = getFormData(elements.editTaskForm);
+
+  const project = projectRepo.find(projectName);
+  const task = project?.findTask(originalTaskName);
+
+  task.edit(
+    taskData.name.trim(),
+    taskData.description.trim(),
+    taskData.dueDate,
+    taskData.priority
   );
-  saveProjects();
+
+  // If the task has moved to a new project, update the task location
+  if (projectName !== taskData.project) {
+    project?.deleteTask(originalTaskName);
+    const newProject = projectRepo.find(taskData.project);
+    newProject?.addTask(task);
+  }
+
+  projectRepo.save();
   renderCurrentProject();
-  elements.editTaskForm.reset();
 });
 
+// Initial render for the default "My Day" project and project buttons
 renderProject("My Day");
-renderProjectBtns(getProjects());
+renderProjectBtns(projectRepo.getAll());
