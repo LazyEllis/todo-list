@@ -252,7 +252,7 @@ elements.editProjectForm.addEventListener("submit", (e) => {
   editProject(projectName, newProject.name.trim());
   renderProjectBtns(getProjects());
   elements.editProjectForm.reset();
-  renderCurrentProject();
+  renderProject(newProject.name);
 });
 
 elements.taskNameInput.addEventListener("input", () => {
