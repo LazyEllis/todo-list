@@ -16,22 +16,20 @@
     "@popperjs/core": "^2.11.8",
     "bootstrap": "^5.3.3",
     "bootstrap-icons": "^1.11.3",
-    "date-fns": "^3.6.0"
+    "date-fns": "^4.1.0"
   },
   "devDependencies": {
-    "autoprefixer": "^10.4.19",
-    "css-loader": "^7.1.0",
-    "css-minimizer-webpack-plugin": "^6.0.0",
-    "gh-pages": "^6.1.1",
-    "html-loader": "^5.0.0",
-    "html-webpack-plugin": "^5.6.0",
-    "mini-css-extract-plugin": "^2.8.1",
-    "nodemon": "^3.1.0",
+    "autoprefixer": "^10.4.20",
+    "css-loader": "^7.1.2",
+    "css-minimizer-webpack-plugin": "^7.0.0",
+    "html-loader": "^5.1.0",
+    "html-webpack-plugin": "^5.6.3",
+    "mini-css-extract-plugin": "^2.9.2",
     "postcss-loader": "^8.1.1",
-    "purgecss-webpack-plugin": "^6.0.0",
-    "sass": "^1.74.1",
-    "sass-loader": "^14.1.1",
-    "webpack": "^5.91.0",
+    "purgecss-webpack-plugin": "^7.0.2",
+    "sass": "^1.81.0",
+    "sass-loader": "^16.0.3",
+    "webpack": "^5.96.1",
     "webpack-cli": "^5.1.4"
   }
 }
