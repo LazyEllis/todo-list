@@ -4,10 +4,9 @@
   "description": "This web application is designed to help users manage their projects and tasks efficiently.",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "watch": "nodemon --watch webpack.config.js --watch \"src/**/*\" --exec \"NODE_ENV=development webpack\"",
-    "build": "NODE_ENV=production webpack",
-    "deploy": "npm run build && gh-pages -d dist"
+    "build": "webpack --config webpack.prod.js",
+    "dev": "webpack serve --config webpack.dev.js",
+    "deploy": "git subtree push --prefix dist origin gh-pages"
   },
   "keywords": [],
   "author": "",
@@ -29,7 +28,10 @@
     "purgecss-webpack-plugin": "^7.0.2",
     "sass": "^1.81.0",
     "sass-loader": "^16.0.3",
+    "style-loader": "^4.0.0",
     "webpack": "^5.96.1",
-    "webpack-cli": "^5.1.4"
+    "webpack-cli": "^5.1.4",
+    "webpack-dev-server": "^5.1.0",
+    "webpack-merge": "^6.0.1"
   }
 }
